@@ -1,0 +1,18 @@
+<?php
+
+return [
+    'parameters' => [
+        'tablePrefix' => 'zasilkovna_',
+        'tempFolder' => __DIR__ . '/../temp',
+        'apiKey' => 'asksksjsjsjsjsjieiesksprieueuiow',
+        'apiBaseUrl' => 'http://www.zasilkovna.cz/api',
+		'connection' => [
+			'host' => '',
+			'port' => '',
+			'database' => '',
+			'user' => '',
+			'password' => '',
+		]
+
+    ]
+];
