@@ -39,13 +39,13 @@ class Config
         return $this->getParameter(['tablePrefix']);
     }
 
-    private function getParameter(array $keys)
-    {
-        return Arrays::getValue($this->config['parameters'], $keys);
-    }
-
     public function getConnection()
     {
         return $this->getParameter(['connection']);
+    }
+
+    private function getParameter(array $keys)
+    {
+        return Arrays::getValue($this->config['parameters'], $keys);
     }
 }

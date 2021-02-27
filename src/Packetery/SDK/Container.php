@@ -6,6 +6,7 @@ use Packetery\SDK\Database\Connection;
 use Packetery\SDK\Database\MysqliDriver;
 use Packetery\SDK\Feed\ApiFeedService;
 use Packetery\SDK\Feed\DatabaseFeedService;
+use Packetery\SDK\Feed\DatabaseRepository;
 use Packetery\SDK\Feed\FeedServiceBrain;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 
@@ -31,12 +32,17 @@ class Container
         return new Connection($driver); // todo must connect after?
     }
 
+    public function getDatabaseRepository()
+    {
+        return new DatabaseRepository($this->getConnection(), $this->config);
+    }
+
     public function getDatabaseFeedService()
     {
         return new DatabaseFeedService(
             $this->getConnection(),
             $this->getFeedServiceBrain(),
-            $this->config
+            $this->getDatabaseRepository()
         );
     }
 

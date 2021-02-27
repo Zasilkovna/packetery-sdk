@@ -8,7 +8,7 @@ interface IFeedService
 {
     /** Returns home delivery carriers by specified filter
      * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
-     * @return \Packetery\SDK\Feed\CarrierCollection
+     * @return \Traversable
      */
     public function getHDCarriers(BranchFilter $branchFilter = null);
 
@@ -20,7 +20,7 @@ interface IFeedService
 
     /**
      * @param string $country
-     * @return \Packetery\SDK\Feed\CarrierCollection
+     * @return \Traversable
      */
     public function getHDCarriersByCountry($country);
 }

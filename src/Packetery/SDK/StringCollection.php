@@ -35,4 +35,9 @@ class StringCollection extends Collection
             $this->toArray()
         );
     }
+
+    public function implode($glue)
+    {
+        return implode($glue, $this->toValueArray());
+    }
 }

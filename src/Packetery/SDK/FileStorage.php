@@ -61,6 +61,7 @@ class FileStorage implements IStorage
             return null;
         }
 
+        $duration = time() - $duration;
         return new Duration(Decimal::create($duration), new DurationUnit(DurationUnit::SECOND));
     }
 

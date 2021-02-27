@@ -18,6 +18,9 @@ class BranchFilter
     /** @var IntVal|null */
     private $limit;
 
+    /** @var bool */
+    private $forHomeDelivery;
+
     /**
      * BranchFilter constructor.
      *
@@ -26,12 +29,26 @@ class BranchFilter
      * @param \Packetery\SDK\PrimitiveTypeWrapper\BoolVal|null $forHomeDelivery
      * @param \Packetery\SDK\PrimitiveTypeWrapper\IntVal|null $limit
      */
-    public function __construct(StringCollection $ids = null, StringVal $country = null, IntVal $limit = null)
+    public function __construct(StringCollection $ids = null, StringVal $country = null, IntVal $limit = null, $forHomeDelivery = null)
     {
         $this->ids = $ids;
         $this->country = $country;
         $this->limit = $limit;
         // todo offset?
+        $this->forHomeDelivery = $forHomeDelivery;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getForHomeDelivery()
+    {
+        return $this->forHomeDelivery;
+    }
+
+    public function setForHomeDelivery($forHomeDelivery = null)
+    {
+        return new self($this->ids, $this->country, $this->limit, $forHomeDelivery);
     }
 
     /**
@@ -44,7 +61,7 @@ class BranchFilter
 
     public function setLimit(IntVal $limit = null)
     {
-        return new self($this->ids, $this->country, $limit);
+        return new self($this->ids, $this->country, $limit, $this->forHomeDelivery);
     }
 
     /**
@@ -57,7 +74,7 @@ class BranchFilter
 
     public function setIds(StringCollection $ids = null)
     {
-        return new self($ids, $this->country, $this->limit);
+        return new self($ids, $this->country, $this->limit, $this->forHomeDelivery);
     }
 
     /**
@@ -70,7 +87,7 @@ class BranchFilter
 
     public function setCountry(StringVal $country = null)
     {
-        return new self($this->ids, $country, $this->limit);
+        return new self($this->ids, $country, $this->limit, $this->forHomeDelivery);
     }
 
     /** Returns API compatible assoc array for query building
@@ -78,7 +95,13 @@ class BranchFilter
      */
     public function toApiArray()
     {
-        return [];
+        $result = [];
+
+        if ($this->forHomeDelivery) {
+            $result['address-delivery'] = 1;
+        }
+
+        return $result;
     }
 
     public function createApiHash()

@@ -24,6 +24,11 @@ class Carrier
         $this->name = $name;
     }
 
+    public static function createFromArray(array $carrier)
+    {
+        return new self(StringVal::create($carrier['id']), StringVal::create($carrier['name']));
+    }
+
     /**
      * @return \Packetery\SDK\PrimitiveTypeWrapper\StringVal
      */
