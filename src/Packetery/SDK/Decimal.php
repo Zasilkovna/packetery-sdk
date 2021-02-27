@@ -48,7 +48,7 @@ class Decimal
 
     public function minus(Decimal $decimal, IntVal $scale = null)
     {
-        $added = bcadd($decimal->value->getValue(), $decimal->getValue() * (-1), $scale ? $scale->getValue() : null);
-        return Decimal::create($added);
+//        $result = bcsub($this->value->getValue(), $decimal->getValue(), $scale ? $scale->getValue() : null); // bcmath extension required
+        return Decimal::parse($this->value->getValue() - $decimal->getValue());
     }
 }

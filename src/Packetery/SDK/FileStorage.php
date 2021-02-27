@@ -22,7 +22,7 @@ class FileStorage implements IStorage
         $this->dir = $dir;
 
         if (!is_writable($this->dir)) {
-            throw new InvalidArgumentException('cache folder is not writable');
+            throw new InvalidArgumentException('temp folder is not writable');
         }
     }
 

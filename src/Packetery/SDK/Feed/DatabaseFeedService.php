@@ -2,10 +2,7 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\Cache;
-use Packetery\SDK\Config;
 use Packetery\SDK\Database\Connection;
-use Packetery\SDK\IStorage;
 use Packetery\SDK\PrimitiveTypeWrapper\IntVal;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 use Packetery\SDK\StringCollection;
@@ -16,7 +13,7 @@ class DatabaseFeedService implements IFeedService
     private $connection;
 
     /** @var \Packetery\SDK\Feed\DatabaseRepository */
-    private $repository;
+    public $repository;
 
     /** @var \Packetery\SDK\Feed\FeedServiceBrain */
     private $feedServiceBrain;
@@ -28,25 +25,26 @@ class DatabaseFeedService implements IFeedService
         $this->repository = $databaseRepository;
     }
 
-    private function isUpdateNeeded()
+    private function isUpdateNeeded(BranchFilter $branchFilter = null)
     {
-        return !$this->feedServiceBrain->isHDBranchFeedCached(null) || $this->feedServiceBrain->isHDBranchFeedExpired(null);
+        return !$this->feedServiceBrain->isSimpleCarrierFeedCached($branchFilter) || $this->feedServiceBrain->isSimpleCarrierFeedExpired($branchFilter);
     }
 
-    private function updateData()
+    private function updateData(BranchFilter $branchFilter = null)
     {
-        $generator = $this->feedServiceBrain->getHDCarrierGenerator(); // going to start new download if isUpdateNeeded()
-        foreach ($generator as $HDCarrier) {
+        $generator = $this->feedServiceBrain->getSimpleCarrierGenerator($branchFilter); // going to start new download if isUpdateNeeded()
+        foreach ($generator as $SimpleCarrier) {
             $this->connection->transactional(
-                function () use ($HDCarrier) {
-                    $filter = new BranchFilter(StringCollection::createFromStrings([$HDCarrier->getId()->getValue()]));
-                    $result = $this->repository->findHDCarrier($filter);
+                function () use ($SimpleCarrier) {
+                    $filter = new BranchFilter();
+                    $filter->setIds(StringCollection::createFromStrings([$SimpleCarrier->getId()->getValue()]));
+                    $result = $this->repository->findCarriers($filter);
 
                     // todo multi insert?
                     if (!$result->isEmpty()) {
-                        $this->repository->updateHDCarrier($HDCarrier);
+                        $this->repository->updateCarrier($SimpleCarrier);
                     } else {
-                        $this->repository->insertHDCarrier($HDCarrier);
+                        $this->repository->insertCarrier($SimpleCarrier);
                     }
                 }
             );
@@ -55,55 +53,66 @@ class DatabaseFeedService implements IFeedService
 
     /**
      * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
-     * @return \Packetery\SDK\Feed\HDCarrierIterator
+     * @return \Packetery\SDK\Feed\SimpleCarrierIterator
      * @throws \Exception
      */
-    public function getHDCarriers(BranchFilter $branchFilter = null)
+    public function getSimpleCarriers(BranchFilter $branchFilter = null)
     {
-        if ($this->isUpdateNeeded()) {
-            $this->updateData();
+        if ($this->isUpdateNeeded($branchFilter)) {
+            $this->updateData($branchFilter);
         }
 
-        $result = $this->repository->findHDCarrier($branchFilter);
-        return new HDCarrierIterator(new \IteratorIterator($result->getIterator()));
+        $result = $this->repository->findCarriers($branchFilter);
+        return new SimpleCarrierIterator($result->getIterator());
     }
 
     /**
      * @param string $id
-     * @return \Packetery\SDK\Feed\HDCarrier
+     * @return \Packetery\SDK\Feed\SimpleCarrier
      */
-    public function getHDCarrierById($id)
+    public function getSimpleCarrierById($id)
     {
-        $branchFilter = new BranchFilter(StringCollection::createFromStrings([$id]));
-        $branchFilter = $branchFilter->setLimit(new IntVal(1));
-        return $this->getHDCarriers($branchFilter)->first();
+        $branchFilter = new BranchFilter();
+        $branchFilter->setIds(StringCollection::createFromStrings([$id]));
+        $branchFilter->setLimit(new IntVal(1));
+        return $this->getSimpleCarriers($branchFilter)->first();
     }
 
     /**
      * @param string $country
-     * @return \Packetery\SDK\Feed\HDCarrierIterator|\Traversable
+     * @return \Packetery\SDK\Feed\SimpleCarrierIterator|\Traversable
      * @throws \Exception
      */
-    public function getHDCarriersByCountry($country)
+    public function getSimpleCarriersByCountry($country)
     {
         $branchFilter = new BranchFilter();
-        $branchFilter = $branchFilter->setCountry(StringVal::create($country));
-        return $this->getHDCarriers($branchFilter);
+
+        $sample = new SimpleCarrierSample();
+        $sample->setCountry($country);
+        $branchFilter->setSimpleCarrierSample($sample);
+
+        return $this->getSimpleCarriers($branchFilter);
     }
 
-//    private function checkSchema()
-//    {
-//        // todo fix and move to docs
-//        $sql = /** @lang MariaDB */
-//            "
-//        CREATE TABLE packetery_carriers (
-//            carrier_id INT(11) NOT NULL,
-//            name VARCHAR(255) NOT NULL,
-//            country VARCHAR(255) NOT NULL,
-//            is_home_delivery smallint(1) NOT NULL
-//        ) ENGINE=INNODB
-//";
-//
-//        $this->connection->query(new StringVal($sql));
-//    }
+    public function getHomeDeliveryCarriers(BranchFilter $branchFilter = null)
+    {
+        $branchFilter = new BranchFilter();
+
+        $sample = new SimpleCarrierSample();
+        $sample->setPickupPoints(false);
+        $branchFilter->setSimpleCarrierSample($sample);
+
+        return $this->getSimpleCarriers($branchFilter);
+    }
+
+    public function getPickupPointCarriers(BranchFilter $branchFilter = null)
+    {
+        $branchFilter = new BranchFilter();
+
+        $sample = new SimpleCarrierSample();
+        $sample->setPickupPoints(true);
+        $branchFilter->setSimpleCarrierSample($sample);
+
+        return $this->getSimpleCarriers($branchFilter);
+    }
 }

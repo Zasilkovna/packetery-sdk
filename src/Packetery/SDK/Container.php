@@ -20,9 +20,9 @@ class Container
      *
      * @param array $config
      */
-    public function __construct(array $config)
+    public function __construct(Config $config)
     {
-        $this->config = new Config($config);
+        $this->config = $config;
     }
 
     public function getConnection()
@@ -55,14 +55,16 @@ class Container
 
     public function getFeedServiceBrain()
     {
+        $dir = new StringVal($this->config->getTempFolder());
+
         return new FeedServiceBrain(
             $this->getClient(),
-            new FileStorage(new StringVal($this->config->getTempFolder()))
+            new FileStorage(Cache::createCacheFolder($dir))
         );
     }
 
     public function getClient()
     {
-        return new Client($this->config->getApiBaseUrl(), new StringVal('v4'), $this->config->getApiKey());
+        return new Client(StringVal::parse($this->config->getApiBaseUrl()), new StringVal('v4'), StringVal::parse($this->config->getApiKey()));
     }
 }

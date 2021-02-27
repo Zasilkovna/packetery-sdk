@@ -2,7 +2,7 @@
 
 namespace Packetery\SDK\Database;
 
-interface IDriver extends \IteratorAggregate
+interface IDriver extends \Iterator
 {
     public function connect(array $config);
     public function disconnect();

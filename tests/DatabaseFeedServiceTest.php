@@ -2,7 +2,7 @@
 
 namespace Packetery\Tests;
 
-require __DIR__ . '/../autoload.php';
+require __DIR__ . '/autoload.php';
 
 use Mockery;
 use Packetery\SDK\CallResult;
@@ -15,8 +15,8 @@ use Packetery\SDK\Database\Result;
 use Packetery\SDK\Feed\DatabaseFeedService;
 use Packetery\SDK\Feed\DatabaseRepository;
 use Packetery\SDK\Feed\FeedServiceBrain;
-use Packetery\SDK\Feed\HDCarrier;
-use Packetery\SDK\Feed\HDCarrierIterator;
+use Packetery\SDK\Feed\SimpleCarrier;
+use Packetery\SDK\Feed\SimpleCarrierIterator;
 use Packetery\SDK\FileStorage;
 use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
@@ -42,7 +42,7 @@ class DatabaseFeedServiceTest extends BaseTest
         $this->assertTrue(class_exists(DatabaseFeedService::class), 'DatabaseFeedService class was not loaded');
     }
 
-    public function testHDCarrierIterator()
+    public function testSimpleCarrierIterator()
     {
         $data = [
             [
@@ -52,7 +52,7 @@ class DatabaseFeedServiceTest extends BaseTest
             ]
         ];
 
-        $iterator = new HDCarrierIterator(
+        $iterator = new SimpleCarrierIterator(
             new \ArrayIterator($data)
         );
 
@@ -60,14 +60,14 @@ class DatabaseFeedServiceTest extends BaseTest
         $this->assertTrue(!empty($array), 'iterator_to_array fails to convert iterator array');
 
         $carrier = $iterator->first();
-        $this->assertInstanceOf(HDCarrier::class, $carrier, 'carrier must be HDCarrier');
+        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier must be SimpleCarrier');
 
         $this->assertTrue(!empty($iterator), 'iterator must not be empty');
 
         $count = 0;
         foreach ($iterator as $car) {
             $count++;
-            $this->assertInstanceOf(HDCarrier::class, $car, 'carrier must be HDCarrier');
+            $this->assertInstanceOf(SimpleCarrier::class, $car, 'carrier must be SimpleCarrier');
         }
 
         $this->assertEquals(1, $count, 'iterator pointer must not move when calling first()');
@@ -79,9 +79,10 @@ class DatabaseFeedServiceTest extends BaseTest
     public function testService()
     {
         $connection = Mockery::mock(Connection::class);
+        $connection->shouldReceive('transactional')->andReturn(null);
 
         $client = Mockery::mock(Client::class);
-        $client->shouldReceive('getHDBranches')->andReturn(
+        $client->shouldReceive('getSimpleCarriers')->andReturn(
             new CallResult(
                 new BoolVal(true),
                 StringVal::create(
@@ -99,7 +100,7 @@ class DatabaseFeedServiceTest extends BaseTest
             )
         );
 
-        $fileStorage = new FileStorage(StringVal::create(__DIR__ . '/temp')); // todo test Cache
+        $fileStorage = $this->createCacheFileStorage();
 
         $brain = new FeedServiceBrain($client, $fileStorage);
 
@@ -110,11 +111,24 @@ class DatabaseFeedServiceTest extends BaseTest
                     [
                         'id' => 13,
                         'name' => 'česká pošta',
+                        'pickupPoints' => 'false',
+                        'apiAllowed' => true,
+                        'customsDeclarations' => true,
+                        'requiresEmail' => true,
+                        'requiresPhone' => true,
+                        'requiresSize' => true,
+                        'separateHouseNumber' => false,
+                        'disallowsCod' => true,
                         'country' => 'cz',
+                        'currency' => 'CZK',
+                        'maxWeight' => '15',
+                        'labelRouting' => 'A--0--000',
+                        'labelName' => 'Carrier 1',
                     ]
                 ]
             )
         );
+
         $resultDriver->shouldReceive('fetch')->times(0);
         $resultDriver->shouldReceive('query')->times(0);
         $resultDriver->shouldReceive('begin')->andReturn(null);
@@ -122,16 +136,41 @@ class DatabaseFeedServiceTest extends BaseTest
         $resultDriver->shouldReceive('rollback')->andReturn(null);
 
         $repository = Mockery::mock(DatabaseRepository::class);
-        $repository->shouldReceive('findCarrier')->andReturn(new Result($resultDriver));
-        $repository->shouldReceive('findHDCarrier')->andReturn(new Result($resultDriver));
-        $repository->shouldReceive('insertHDCarrier')->andReturn(null);
-        $repository->shouldReceive('updateHDCarrier')->times(0)->andReturn(null);
+        $repository->shouldReceive('findCarriers')->andReturn(new Result($resultDriver));
+        $repository->shouldReceive('insertCarrier')->andReturn(null);
+        $repository->shouldReceive('updateCarrier')->times(0)->andReturn(null);
 
         $service = new DatabaseFeedService($connection, $brain, $repository);
-        $carrierIterator = $service->getHDCarriersByCountry('cz');
+        $carrierIterator = $service->getSimpleCarriersByCountry('cz');
         $carrier = $carrierIterator->first();
 
-        $this->assertInstanceOf(HDCarrier::class, $carrier, 'carrier is not HDCarrier');
+        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
         $this->assertEquals('13', $carrier->getId()->getValue());
+        $this->assertEquals('česká pošta', $carrier->getName()->getValue());
+        $this->assertEquals(false, $carrier->isPickupPoints());
+        $this->assertEquals(true, $carrier->isApiAllowed());
+        $this->assertEquals(true, $carrier->isDisallowsCod());
+        $this->assertEquals(false, $carrier->isSeparateHouseNumber());
+        $this->assertEquals(true, $carrier->isRequiresEmail());
+        $this->assertEquals(true, $carrier->isRequiresPhone());
+        $this->assertEquals(true, $carrier->isRequiresSize());
+        $this->assertEquals('cz', $carrier->getCountry());
+        $this->assertEquals('CZK', $carrier->getCurrency());
+        $this->assertEquals('15', $carrier->getMaxWeight());
+        $this->assertEquals('A--0--000', $carrier->getLabelRouting());
+        $this->assertEquals('Carrier 1', $carrier->getLabelName());
+    }
+
+    /**
+     * @depends testService
+     */
+    public function testAll()
+    {
+        $container = new Container($this->config);
+        $service = $container->getDatabaseFeedService();
+        $carrierIterator = $service->getSimpleCarriersByCountry('cz');
+        $carrier = $carrierIterator->first();
+
+        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
     }
 }

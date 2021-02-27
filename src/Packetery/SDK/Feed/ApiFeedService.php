@@ -25,13 +25,13 @@ class ApiFeedService implements IFeedService
      * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
      * @return \Packetery\SDK\Feed\CarrierCollection
      */
-    public function getHDCarriers(BranchFilter $branchFilter = null)
+    public function getSimpleCarriers(BranchFilter $branchFilter = null)
     {
         $collection = new CarrierCollection();
 
         $count = 0;
         $limit = $branchFilter !== null && $branchFilter->getLimit() !== null && $branchFilter->getLimit()->getValue() > 0 ? $branchFilter->getLimit()->getValue() : null;
-        $carriers = $this->feedServiceBrain->getHDCarrierGenerator();
+        $carriers = $this->feedServiceBrain->getSimpleCarrierGenerator();
         foreach ($carriers as $carrier) {
             if ($limit !== null && $count > $limit) {
                 break;
@@ -60,12 +60,12 @@ class ApiFeedService implements IFeedService
      * @param $id
      * @return mixed|null
      */
-    public function getHDCarrierById($id)
+    public function getSimpleCarrierById($id)
     {
         $filter = new BranchFilter();
         $filter->setIds(new StringCollection([$id]));
         $filter->setLimit(new IntVal(1));
-        $collection = $this->getHDCarriers($filter);
+        $collection = $this->getSimpleCarriers($filter);
         return $collection->first();
     }
 
@@ -73,10 +73,10 @@ class ApiFeedService implements IFeedService
      * @param $country
      * @return \Packetery\SDK\Feed\CarrierCollection
      */
-    public function getHDCarriersByCountry($country)
+    public function getSimpleCarriersByCountry($country)
     {
         $filter = new BranchFilter();
         $filter->setCountry(StringVal::parse($country));
-        return $this->getHDCarriers($filter);
+        return $this->getSimpleCarriers($filter);
     }
 }

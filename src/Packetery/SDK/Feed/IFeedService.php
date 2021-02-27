@@ -10,17 +10,29 @@ interface IFeedService
      * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
      * @return \Traversable
      */
-    public function getHDCarriers(BranchFilter $branchFilter = null);
+    public function getSimpleCarriers(BranchFilter $branchFilter = null);
 
     /**
      * @param string $id
      * @return mixed
      */
-    public function getHDCarrierById($id);
+    public function getSimpleCarrierById($id);
 
     /**
      * @param string $country
      * @return \Traversable
      */
-    public function getHDCarriersByCountry($country);
+    public function getSimpleCarriersByCountry($country);
+
+    /**
+     * @param string $country
+     * @return \Traversable
+     */
+    public function getHomeDeliveryCarriers(BranchFilter $branchFilter = null);
+
+    /**
+     * @param string $country
+     * @return \Traversable
+     */
+    public function getPickupPointCarriers(BranchFilter $branchFilter = null);
 }
