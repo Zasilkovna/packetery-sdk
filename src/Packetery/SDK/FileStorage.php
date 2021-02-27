@@ -62,7 +62,7 @@ class FileStorage implements IStorage
         }
 
         $duration = time() - $duration;
-        return new Duration(Decimal::create($duration), new DurationUnit(DurationUnit::SECOND));
+        return new Duration(Decimal::parse($duration), new DurationUnit(DurationUnit::SECOND));
     }
 
     private function getExistingFilePath(StringVal $key)

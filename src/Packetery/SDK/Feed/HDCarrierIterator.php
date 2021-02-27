@@ -36,7 +36,6 @@ class HDCarrierIterator implements \IteratorAggregate
     public function first()
     {
         $iterable = $this->getGenerator();
-        $iterable->next();
         return $iterable->current();
     }
 }

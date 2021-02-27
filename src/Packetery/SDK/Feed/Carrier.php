@@ -26,7 +26,7 @@ class Carrier
 
     public static function createFromArray(array $carrier)
     {
-        return new self(StringVal::create($carrier['id']), StringVal::create($carrier['name']));
+        return new static(StringVal::create((string)$carrier['id']), StringVal::create($carrier['name']));
     }
 
     /**

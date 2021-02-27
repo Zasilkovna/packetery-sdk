@@ -33,7 +33,7 @@ class FeedServiceBrain
     private function createHDBranchFeedKey(BranchFilter $branchFilter = null)
     {
         $key = new StringVal('homeDeliveryBranchFeed');
-        return $key->append($branchFilter->createApiHash());
+        return $key->append($branchFilter ? $branchFilter->createApiHash() : '');
     }
 
     private function createHDBranchFeedDuration()

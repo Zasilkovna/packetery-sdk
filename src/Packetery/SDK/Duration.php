@@ -39,7 +39,7 @@ class Duration
         $valueSeconds = $duration->toSeconds();
         $diff = $seconds->minus($valueSeconds);
 
-        return new Duration(Decimal::create($diff), new DurationUnit(DurationUnit::SECOND));
+        return new Duration(Decimal::parse($diff), new DurationUnit(DurationUnit::SECOND));
     }
 
 }

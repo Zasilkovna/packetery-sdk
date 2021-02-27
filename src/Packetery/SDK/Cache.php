@@ -29,7 +29,7 @@ class Cache
         $duration = $this->storage->duration($key);
         if ($duration) {
             $diff = $maxDuration->minus($duration);
-            if ($diff->toSeconds()->lt(Decimal::create(0))) {
+            if ($diff->toSeconds()->lt(Decimal::parse(0))) {
                 return true;
             }
         }
@@ -41,7 +41,7 @@ class Cache
     {
         if ($options !== null) {
             if (isset($options[self::OPTION_EXPIRATION])) {
-                $maxDuration = new Duration(Decimal::create($options[self::OPTION_EXPIRATION]), new DurationUnit(DurationUnit::SECOND));
+                $maxDuration = new Duration(Decimal::parse($options[self::OPTION_EXPIRATION]), new DurationUnit(DurationUnit::SECOND));
                 if ($this->isExpired($key, $maxDuration)) {
                     $this->storage->remove($key);
                 }
