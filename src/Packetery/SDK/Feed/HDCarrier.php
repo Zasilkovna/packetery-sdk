@@ -27,12 +27,12 @@ class HDCarrier extends Carrier
 
     public static function createFromArray(array $carrier)
     {
-        $carrier = parent::createFromArray($carrier);
+        $instance = parent::createFromArray($carrier);
 
         if (!empty($carrier['country'])) {
-            $carrier->setCountry(StringVal::create($carrier['country']));
+            $instance->setCountry(StringVal::create($carrier['country']));
         }
 
-        return $carrier;
+        return $instance;
     }
 }
