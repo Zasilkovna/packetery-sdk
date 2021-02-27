@@ -33,12 +33,12 @@ class Client
      * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
      * @return \Packetery\SDK\CallResult
      */
-    public function getHDBranches(BranchFilter $branchFilter = null)
+    public function getSimpleCarriers(BranchFilter $branchFilter = null)
     {
-        $params = $branchFilter->toApiArray();
-        $params['address-delivery'] = '1';
+        $params = $branchFilter ? $branchFilter->toApiArray() : [];
+        $params['address-delivery'] = '1'; // nevykreslí branches a do carriers dá De Hermes HD i DE Hermes PP bez seznamu pickup pointů
 
-        $url = $this->createUrl('/branch.json', $params);
+        $url = $this->createUrl('branch.json', $params);
 
         $content = $this->get($url);
 
@@ -60,13 +60,25 @@ class Client
             ]
         );
 
-        return file_get_contents((string)$url, false, $ctx);
+        set_error_handler(
+            function ($severity, $message, $file, $line) {
+                throw new ClientException($message, $severity);
+            }
+        );
+
+        try {
+            return file_get_contents((string)$url, false, $ctx);
+        } catch (\Exception $exception) {
+            throw new ClientException($exception->getMessage(), $exception->getCode(), $exception);
+        } finally {
+            restore_error_handler();
+        }
     }
 
     private function createUrl($endpoint, array $params)
     {
         $query = http_build_query($params);
-        $url = StringVal::create($this->baseUrl)
+        $url = $this->baseUrl
             ->append('/')->append($this->version)->append('/')
             ->append($this->apiKey)->append('/')->append($endpoint)
             ->append('?')->append($query)

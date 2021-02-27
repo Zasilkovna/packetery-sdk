@@ -17,7 +17,7 @@ if (empty($packeteryContainer)) {
         }
     );
     
-    $packeteryContainer = new \Packetery\SDK\Container(require __DIR__ . '/config.php');
+    $packeteryContainer = new \Packetery\SDK\Container(new \Packetery\SDK\Config(require __DIR__ . '/config.php'));
 }
 
 return $packeteryContainer;

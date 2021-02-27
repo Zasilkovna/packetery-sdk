@@ -2,6 +2,7 @@
 
 namespace Packetery\SDK;
 
+use Packetery\Domain\InvalidArgumentException;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 
 class Cache
@@ -17,6 +18,24 @@ class Cache
     public function __construct(IStorage $storage)
     {
         $this->storage = $storage;
+    }
+
+    public static function createCacheFolder(StringVal $tempFolder)
+    {
+        if (!is_dir($tempFolder->getValue())) {
+            throw new InvalidArgumentException('Not a folder: ' . $tempFolder);
+        }
+
+        if (!is_writable($tempFolder->getValue())) {
+            throw new InvalidArgumentException('Folder not writable: ' . $tempFolder);
+        }
+
+        $finalDir = $tempFolder->append('/cache');
+        if (!is_dir($finalDir)) {
+            mkdir($finalDir);
+        }
+
+        return $finalDir;
     }
 
     public function exists(StringVal $key)

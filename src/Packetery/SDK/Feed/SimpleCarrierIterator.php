@@ -2,7 +2,7 @@
 
 namespace Packetery\SDK\Feed;
 
-class HDCarrierIterator implements \IteratorAggregate
+class SimpleCarrierIterator implements \IteratorAggregate
 {
     /** @var \Iterator */
     private $iterable;
@@ -13,7 +13,7 @@ class HDCarrierIterator implements \IteratorAggregate
     }
 
     /**
-     * @return \Generator|\Packetery\SDK\Feed\HDCarrier[]
+     * @return \Generator|\Packetery\SDK\Feed\SimpleCarrier[]
      */
     public function getIterator()
     {
@@ -26,12 +26,12 @@ class HDCarrierIterator implements \IteratorAggregate
     private function getGenerator()
     {
         foreach (new \IteratorIterator($this->iterable) as $key => $carrier) {
-            yield $key => HDCarrier::createFromArray((array)$carrier);
+            yield $key => SimpleCarrier::createFromArray((array)$carrier);
         }
     }
 
     /**
-     * @return \Packetery\SDK\Feed\HDCarrier
+     * @return \Packetery\SDK\Feed\SimpleCarrier
      */
     public function first()
     {

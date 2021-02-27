@@ -21,6 +21,17 @@ class BoolVal
         $this->value = $value;
     }
 
+    public static function parse($value)
+    {
+        if ($value === 'true') {
+            $value = true;
+        } elseif ($value === 'false') {
+            $value = false;
+        }
+
+        return new self((bool)$value);
+    }
+
     public function getValue()
     {
         return $this->value;

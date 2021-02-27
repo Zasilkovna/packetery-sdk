@@ -7,11 +7,12 @@ return [
         'apiKey' => 'asksksjsjsjsjsjieiesksprieueuiow',
         'apiBaseUrl' => 'http://www.zasilkovna.cz/api',
 		'connection' => [
-			'host' => '',
-			'port' => '',
-			'database' => '',
-			'user' => '',
-			'password' => '',
+			'host' => 'host.docker.internal',
+			'port' => '3306',
+			'database' => 'my_project',
+            'charset' => 'utf8',
+			'user' => 'user',
+			'password' => 'jsaoioijewoijsareiudsoieoispqqqq',
 		]
 
     ]

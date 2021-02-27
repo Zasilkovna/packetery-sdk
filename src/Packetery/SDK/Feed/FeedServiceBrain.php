@@ -24,43 +24,43 @@ class FeedServiceBrain
      *
      * @param \Packetery\SDK\Client $client
      */
-    public function __construct(\Packetery\SDK\Client $client, IStorage $storage)
+    public function __construct(\Packetery\SDK\Client $client, IStorage $cacheStorage)
     {
         $this->client = $client;
-        $this->cache = new Cache($storage);
+        $this->cache = new Cache($cacheStorage);
     }
 
-    private function createHDBranchFeedKey(BranchFilter $branchFilter = null)
+    private function createSimpleCarrierFeedKey(BranchFilter $branchFilter = null)
     {
         $key = new StringVal('homeDeliveryBranchFeed');
         return $key->append($branchFilter ? $branchFilter->createApiHash() : '');
     }
 
-    private function createHDBranchFeedDuration()
+    private function createSimpleCarrierFeedDuration()
     {
         return new Duration(Decimal::parse(3600), new DurationUnit(DurationUnit::SECOND));
     }
 
-    public function isHDBranchFeedCached(BranchFilter $branchFilter = null)
+    public function isSimpleCarrierFeedCached(BranchFilter $branchFilter = null)
     {
-        $key = $this->createHDBranchFeedKey($branchFilter);
+        $key = $this->createSimpleCarrierFeedKey($branchFilter);
         return $this->cache->exists($key);
     }
 
-    public function isHDBranchFeedExpired(BranchFilter $branchFilter = null)
+    public function isSimpleCarrierFeedExpired(BranchFilter $branchFilter = null)
     {
-        $key = $this->createHDBranchFeedKey($branchFilter);
-        return $this->cache->isExpired($key, $this->createHDBranchFeedDuration());
+        $key = $this->createSimpleCarrierFeedKey($branchFilter);
+        return $this->cache->isExpired($key, $this->createSimpleCarrierFeedDuration());
     }
 
-    public function getHDBranchExport(BranchFilter $branchFilter = null)
+    public function getSimpleCarrierExport(BranchFilter $branchFilter = null)
     {
-        $key = $this->createHDBranchFeedKey($branchFilter);
-        $duration = $this->createHDBranchFeedDuration();
+        $key = $this->createSimpleCarrierFeedKey($branchFilter);
+        $duration = $this->createSimpleCarrierFeedDuration();
         return $this->cache->load(
             $key,
             function () use ($branchFilter) {
-                $callResult = $this->client->getHDBranches($branchFilter);
+                $callResult = $this->client->getSimpleCarriers($branchFilter);
                 return $callResult->getResponseBody();
             },
             [
@@ -69,21 +69,21 @@ class FeedServiceBrain
         );
     }
 
-    public function getHDBranchExportDecoded(BranchFilter $branchFilter = null)
+    public function getSimpleCarrierExportDecoded(BranchFilter $branchFilter = null)
     {
-        $responseBody = $this->getHDBranchExport($branchFilter);
+        $responseBody = $this->getSimpleCarrierExport($branchFilter);
         return $this->decodeJsonContent($responseBody);
     }
 
     /**
-     * @return \Packetery\SDK\Feed\HDCarrier[]|\Generator
+     * @return \Packetery\SDK\Feed\SimpleCarrier[]|\Generator
      */
-    public function getHDCarrierGenerator()
+    public function getSimpleCarrierGenerator(BranchFilter $branchFilter = null)
     {
-        $decoded = $this->getHDBranchExportDecoded();
-        $carriers = Arrays::getValue($decoded, ['carriers', 'carrier'], []);
+        $decoded = $this->getSimpleCarrierExportDecoded($branchFilter);
+        $carriers = Arrays::getValue($decoded, ['carriers'], []);
         foreach ($carriers as $key => $carrier) {
-            yield $key => HDCarrier::createFromArray($carrier); // so it does not matter how many items there are
+            yield $key => SimpleCarrier::createFromArray($carrier); // so it does not matter how many items there are
         }
     }
 
