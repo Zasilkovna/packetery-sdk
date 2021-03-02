@@ -1,3 +1,7 @@
-installation
+## Installation
 
-usage
+
+
+## Usage
+
+- see example.php in root directory

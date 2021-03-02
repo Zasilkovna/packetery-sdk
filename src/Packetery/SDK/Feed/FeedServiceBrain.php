@@ -83,7 +83,7 @@ class FeedServiceBrain
         $decoded = $this->getSimpleCarrierExportDecoded($branchFilter);
         $carriers = Arrays::getValue($decoded, ['carriers'], []);
         foreach ($carriers as $key => $carrier) {
-            yield $key => SimpleCarrier::createFromArray($carrier); // so it does not matter how many items there are
+            yield $key => SimpleCarrier::createFromFeedArray($carrier); // so it does not matter how many items there are
         }
     }
 

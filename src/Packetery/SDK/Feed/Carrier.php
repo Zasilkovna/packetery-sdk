@@ -24,7 +24,7 @@ class Carrier
         $this->name = $name;
     }
 
-    public static function createFromArray(array $carrier)
+    public static function createFromFeedArray(array $carrier)
     {
         return new static(StringVal::create((string)$carrier['id']), StringVal::create($carrier['name']));
     }

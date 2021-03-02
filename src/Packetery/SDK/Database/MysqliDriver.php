@@ -35,6 +35,11 @@ class MysqliDriver implements IDriver
     public function connect(array $config)
     {
         $this->connection = mysqli_connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
+
+        if (mysqli_errno($this->connection)) {
+            throw new DriverException(mysqli_error($this->connection));
+        }
+
         mysqli_set_charset($this->connection, $config['charset']);
     }
 

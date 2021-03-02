@@ -26,7 +26,14 @@ class SimpleCarrierIterator implements \IteratorAggregate
     private function getGenerator()
     {
         foreach (new \IteratorIterator($this->iterable) as $key => $carrier) {
-            yield $key => SimpleCarrier::createFromArray((array)$carrier);
+            if ($carrier instanceof SimpleCarrier) {
+                $simpleCarrier = $carrier;
+            } else {
+                $carrierData = (array)$carrier;
+                $simpleCarrier = SimpleCarrier::createFromDatabaseRow($carrierData);
+            }
+
+            yield $key => $simpleCarrier;
         }
     }
 

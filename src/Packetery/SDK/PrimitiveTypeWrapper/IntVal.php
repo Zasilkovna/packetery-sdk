@@ -25,4 +25,13 @@ class IntVal
     {
         return $this->value;
     }
+
+    public static function parse($value)
+    {
+        if ($value instanceof self) {
+            $value = $value->getValue();
+        }
+
+        return new self((int)$value);
+    }
 }

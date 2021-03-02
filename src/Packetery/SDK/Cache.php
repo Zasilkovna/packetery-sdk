@@ -4,6 +4,7 @@ namespace Packetery\SDK;
 
 use Packetery\Domain\InvalidArgumentException;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
+use Packetery\Utils\FS;
 
 class Cache
 {
@@ -75,5 +76,19 @@ class Cache
         }
 
         return $content;
+    }
+
+    public function clearAll(StringVal $tempFolder)
+    {
+        self::createCacheFolder($tempFolder);
+        $files = FS::rglob($tempFolder->append('/cache/*'), GLOB_NOSORT);
+
+        foreach ($files as $file) {
+            if (is_dir($file) || $file === '.' || $file === '..') {
+                continue;
+            }
+
+            unlink($file);
+        }
     }
 }

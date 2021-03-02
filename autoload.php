@@ -6,6 +6,8 @@ global $packeteryContainer;
 
 if (empty($packeteryContainer)) {
 
+    define('PACKETERY_SDK_VERSION', '1.0.0');
+
     spl_autoload_register(
         function ($className) {
             $className = ltrim($className, '\\');
