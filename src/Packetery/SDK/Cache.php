@@ -78,17 +78,19 @@ class Cache
         return $content;
     }
 
-    public function clearAll(StringVal $tempFolder)
+    public static function clearAll($tempFolder)
     {
-        self::createCacheFolder($tempFolder);
-        $files = FS::rglob($tempFolder->append('/cache/*'), GLOB_NOSORT);
+        $tempFolder = StringVal::parse($tempFolder);
+        if (is_dir($tempFolder->append('/cache'))) {
+            $files = FS::rglob($tempFolder->append('/cache/*'), GLOB_NOSORT);
 
-        foreach ($files as $file) {
-            if (is_dir($file) || $file === '.' || $file === '..') {
-                continue;
+            foreach ($files as $file) {
+                if (is_dir($file) || $file === '.' || $file === '..') {
+                    continue;
+                }
+
+                unlink($file);
             }
-
-            unlink($file);
         }
     }
 }

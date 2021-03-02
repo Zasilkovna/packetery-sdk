@@ -2,7 +2,7 @@
 
 namespace Packetery\Tests;
 
-require __DIR__ . '/autoload.php';
+require __DIR__ . '/../autoload.php';
 
 use Packetery\SDK\Cache;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
@@ -58,5 +58,9 @@ class CacheTest extends BaseTest
         );
 
         $this->assertEquals((string)$contentLoaded, $content3, 'cache was not invalidated');
+
+        $this->assertTrue($cache->exists($key));
+        Cache::clearAll($this->config->getTempFolder());
+        $this->assertFalse($cache->exists($key));
     }
 }

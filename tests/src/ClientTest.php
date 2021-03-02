@@ -2,11 +2,12 @@
 
 namespace Packetery\Tests;
 
-require __DIR__ . '/autoload.php';
+require __DIR__ . '/../autoload.php';
 
 use Packetery\SDK\Client;
 use Packetery\SDK\ClientException;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
+use Packetery\Utils\Json;
 
 class ClientTest extends BaseTest
 {
@@ -22,9 +23,7 @@ class ClientTest extends BaseTest
         $result = $client->getSimpleCarriers();
 
         $body = $result->getResponseBody();
-
-        file_put_contents(__DIR__ . '/branch.json', $body);
-
         $this->assertTrue(!empty($body), 'body is empty');
+        Json::decode($body);
     }
 }

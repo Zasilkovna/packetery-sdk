@@ -2,7 +2,7 @@
 
 namespace Packetery\Tests;
 
-require __DIR__ . '/autoload.php';
+require __DIR__ . '/../autoload.php';
 
 use Mockery;
 use Packetery\SDK\CallResult;
@@ -12,7 +12,7 @@ use Packetery\SDK\Container;
 use Packetery\SDK\Database\Connection;
 use Packetery\SDK\Database\IDriver;
 use Packetery\SDK\Database\Result;
-use Packetery\SDK\Feed\BranchFilter;
+use Packetery\SDK\Feed\CarrierFilter;
 use Packetery\SDK\Feed\DatabaseFeedService;
 use Packetery\SDK\Feed\DatabaseRepository;
 use Packetery\SDK\Feed\FeedServiceBrain;
@@ -29,8 +29,8 @@ class DatabaseFeedServiceTest extends BaseTest
 
     public function testClassAutoload()
     {
-        $container = require __DIR__ . '/../autoload.php';
-        $container2 = require __DIR__ . '/../autoload.php';
+        $container = require __DIR__ . '/../../autoload.php';
+        $container2 = require __DIR__ . '/../../autoload.php';
 
         $this->assertTrue($container === $container2, 'Only one instance of container is allowed');
 
@@ -168,7 +168,7 @@ class DatabaseFeedServiceTest extends BaseTest
      */
     public function testAll()
     {
-        $container = new Container($this->config);
+        $container = $this->createContainer();
         $service = $container->getDatabaseFeedService();
         $carrierIterator = $service->getSimpleCarriersByCountry('cz');
         $carrier = $carrierIterator->first();
@@ -201,10 +201,15 @@ class DatabaseFeedServiceTest extends BaseTest
         $this->assertEquals($carrier->getId()->getValue(), $carrierById->getId()->getValue(),'$carrierById id has different value');
         $this->assertEquals($carrier->getName()->getValue(), $carrierById->getName()->getValue(),'$carrierById name has different name');
 
-        $filter = new BranchFilter();
+        $filter = new CarrierFilter();
         $filter->setLimit(2);
 
         $carriersLimit2 = $service->getSimpleCarriers($filter);
-        $this->assertCount(2, $carriersLimit2, 'limit or iterator or feed db sync doesnt work');
+        $data = iterator_to_array($carriersLimit2);
+        $this->assertCount(2, $data, 'limit or iterator or feed db sync doesnt work');
+        $this->assertCount(2, $data, 'limit or iterator or feed db sync doesnt work');
+
+        $this->assertNotEquals($carrier1 = array_shift($data), $carrier2 = array_shift($data), 'data items are same');
+        $this->assertNotEquals($carrier1->getId()->getValue(), $carrier2->getId()->getValue(), 'data items are same');
     }
 }

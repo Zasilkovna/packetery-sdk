@@ -25,7 +25,7 @@ class SimpleCarrierIterator implements \IteratorAggregate
      */
     private function getGenerator()
     {
-        foreach (new \IteratorIterator($this->iterable) as $key => $carrier) {
+        foreach ($this->iterable as $key => $carrier) {
             if ($carrier instanceof SimpleCarrier) {
                 $simpleCarrier = $carrier;
             } else {

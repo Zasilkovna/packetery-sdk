@@ -7,16 +7,35 @@ use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
 use Packetery\SDK\StringCollection;
 
-class BranchFilter
+class CarrierFilter
 {
     /** @var StringCollection|null */
     private $ids;
+
+    /** @var StringCollection|null */
+    private $excludedIds;
+
+    /** @var array */
+    private $apiParams = [];
 
     /** @var IntVal|null */
     private $limit;
 
     /** @var \Packetery\SDK\Feed\SimpleCarrierSample|null */
     private $simpleCarrierSample;
+
+    /**
+     * @return \Packetery\SDK\StringCollection|null
+     */
+    public function getExcludedIds()
+    {
+        return $this->excludedIds;
+    }
+
+    public function setExcludedIds(StringCollection $excludedIds = null)
+    {
+        $this->excludedIds = $excludedIds;
+    }
 
     /**
      * @return \Packetery\SDK\Feed\SimpleCarrierSample|null
@@ -60,13 +79,18 @@ class BranchFilter
     /** Returns API compatible assoc array for query building
      * @return array
      */
-    public function toApiArray()
+    public function getApiParams()
     {
-        return [];
+        return $this->apiParams;
+    }
+
+    public function setApiParams(array $apiParams)
+    {
+        $this->apiParams = $apiParams;
     }
 
     public function createApiHash()
     {
-        return new StringVal(md5(serialize($this->toApiArray())));
+        return new StringVal(md5(serialize($this->getApiParams())));
     }
 }

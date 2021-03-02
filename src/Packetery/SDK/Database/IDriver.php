@@ -2,7 +2,7 @@
 
 namespace Packetery\SDK\Database;
 
-interface IDriver extends \Iterator
+interface IDriver extends \Iterator, \Countable
 {
     public function connect(array $config);
     public function disconnect();
@@ -19,6 +19,5 @@ interface IDriver extends \Iterator
     public function commit($savepoint = null);
     public function rollback($savepoint = null);
     public function begin($savepoint = null);
-    public function fetch($assoc);
     public function free();
 }

@@ -40,4 +40,9 @@ class StringCollection extends Collection
     {
         return implode($glue, $this->toValueArray());
     }
+
+    public function containsValue($needle)
+    {
+        return in_array($needle, $this->toValueArray());
+    }
 }
