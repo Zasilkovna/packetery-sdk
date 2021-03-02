@@ -12,6 +12,7 @@ use Packetery\SDK\Container;
 use Packetery\SDK\Database\Connection;
 use Packetery\SDK\Database\IDriver;
 use Packetery\SDK\Database\Result;
+use Packetery\SDK\Feed\BranchFilter;
 use Packetery\SDK\Feed\DatabaseFeedService;
 use Packetery\SDK\Feed\DatabaseRepository;
 use Packetery\SDK\Feed\FeedServiceBrain;
@@ -19,6 +20,7 @@ use Packetery\SDK\Feed\SimpleCarrier;
 use Packetery\SDK\Feed\SimpleCarrierIterator;
 use Packetery\SDK\FileStorage;
 use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
+use Packetery\SDK\PrimitiveTypeWrapper\IntVal;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 use Packetery\Utils\Json;
 
@@ -172,5 +174,37 @@ class DatabaseFeedServiceTest extends BaseTest
         $carrier = $carrierIterator->first();
 
         $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
+
+        $carrierIterator = $service->getHomeDeliveryCarriers();
+        $carrier = $carrierIterator->first();
+
+        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
+
+        $carrierIterator = $service->getHomeDeliveryCarriersByCountry('cz');
+        $carrier = $carrierIterator->first();
+
+        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
+
+        $carrierIterator = $service->getPickupPointCarriers();
+        $carrier = $carrierIterator->first();
+
+        $this->assertNotEmpty($carrier->getId()->getValue(), 'carrier id is empty');
+        $this->assertNotEmpty($carrier->getName()->getValue(), 'carrier name is empty');
+        $this->assertNotEmpty($carrier->getCountry(), 'carrier id is empty');
+        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
+
+        $carrierById = $service->getSimpleCarrierById($carrier->getId()->getValue());
+
+        $this->assertNotEmpty($carrier->getId()->getValue(), 'carrier id is empty');
+        $this->assertNotEmpty($carrierById->getId()->getValue(), '$carrierById carrier id is empty');
+        $this->assertInstanceOf(SimpleCarrier::class, $carrierById, 'carrier is not SimpleCarrier');
+        $this->assertEquals($carrier->getId()->getValue(), $carrierById->getId()->getValue(),'$carrierById id has different value');
+        $this->assertEquals($carrier->getName()->getValue(), $carrierById->getName()->getValue(),'$carrierById name has different name');
+
+        $filter = new BranchFilter();
+        $filter->setLimit(2);
+
+        $carriersLimit2 = $service->getSimpleCarriers($filter);
+        $this->assertCount(2, $carriersLimit2, 'limit or iterator or feed db sync doesnt work');
     }
 }

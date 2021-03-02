@@ -15,9 +15,6 @@ class BranchFilter
     /** @var IntVal|null */
     private $limit;
 
-    /** @var bool|null */
-    private $forHomeDelivery;
-
     /** @var \Packetery\SDK\Feed\SimpleCarrierSample|null */
     private $simpleCarrierSample;
 
@@ -35,19 +32,6 @@ class BranchFilter
     }
 
     /**
-     * @return bool
-     */
-    public function getForHomeDelivery()
-    {
-        return $this->forHomeDelivery;
-    }
-
-    public function setForHomeDelivery($forHomeDelivery = null)
-    {
-        $this->forHomeDelivery = $forHomeDelivery;
-    }
-
-    /**
      * @return \Packetery\SDK\PrimitiveTypeWrapper\IntVal
      */
     public function getLimit()
@@ -55,9 +39,9 @@ class BranchFilter
         return $this->limit;
     }
 
-    public function setLimit(IntVal $limit = null)
+    public function setLimit($limit = null)
     {
-        $this->limit = $limit;
+        $this->limit = IntVal::parse($limit);
     }
 
     /**
@@ -78,13 +62,7 @@ class BranchFilter
      */
     public function toApiArray()
     {
-        $result = [];
-
-        if ($this->forHomeDelivery) {
-            $result['address-delivery'] = 1;
-        }
-
-        return $result;
+        return [];
     }
 
     public function createApiHash()

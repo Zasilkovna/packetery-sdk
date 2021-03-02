@@ -49,9 +49,9 @@ class SimpleCarrier extends Carrier
     /** @var string|null */
     private $labelName;
 
-    public static function createFromArray(array $carrier)
+    public static function createFromFeedArray(array $carrier)
     {
-        $instance = parent::createFromArray($carrier);
+        $instance = parent::createFromFeedArray($carrier);
 
         if (!empty($carrier['country'])) {
             $instance->setCountry($carrier['country']);
@@ -72,6 +72,15 @@ class SimpleCarrier extends Carrier
         $instance->setMaxWeight($carrier['maxWeight']);
 
         return $instance;
+    }
+
+    public static function createFromDatabaseRow(array $carrier)
+    {
+        if (empty($carrier['id'])) {
+            $carrier['id'] = $carrier['carrier_id']; // always same thing
+        }
+        unset($carrier['carrier_id']);
+        return self::createFromFeedArray($carrier);
     }
 
     /**

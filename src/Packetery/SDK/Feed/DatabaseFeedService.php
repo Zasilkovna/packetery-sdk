@@ -96,7 +96,7 @@ class DatabaseFeedService implements IFeedService
 
     public function getHomeDeliveryCarriers(BranchFilter $branchFilter = null)
     {
-        $branchFilter = new BranchFilter();
+        $branchFilter = $branchFilter ?: new BranchFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setPickupPoints(false);
@@ -105,9 +105,26 @@ class DatabaseFeedService implements IFeedService
         return $this->getSimpleCarriers($branchFilter);
     }
 
-    public function getPickupPointCarriers(BranchFilter $branchFilter = null)
+    /**
+     * @param $country
+     * @return \Packetery\SDK\Feed\SimpleCarrierIterator
+     * @throws \Exception
+     */
+    public function getHomeDeliveryCarriersByCountry($country)
     {
         $branchFilter = new BranchFilter();
+
+        $sample = new SimpleCarrierSample();
+        $sample->setPickupPoints(false);
+        $sample->setCountry($country);
+        $branchFilter->setSimpleCarrierSample($sample);
+
+        return $this->getSimpleCarriers($branchFilter);
+    }
+
+    public function getPickupPointCarriers(BranchFilter $branchFilter = null)
+    {
+        $branchFilter = $branchFilter ?: new BranchFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setPickupPoints(true);

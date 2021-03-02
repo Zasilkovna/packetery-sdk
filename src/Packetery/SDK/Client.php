@@ -6,6 +6,9 @@ use Packetery\SDK\Feed\BranchFilter;
 use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 
+/**
+ * todo rename FeedClient
+ */
 class Client
 {
     /** @var StringVal */

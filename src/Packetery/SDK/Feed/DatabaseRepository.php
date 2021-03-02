@@ -27,7 +27,7 @@ class DatabaseRepository
         $conditions = ['1'];
 
         if ($branchFilter) {
-            if ($branchFilter->getIds() && $branchFilter->getIds()->isEmpty()) {
+            if ($branchFilter->getIds() && !$branchFilter->getIds()->isEmpty()) {
                 $idCollection = $this->connection->escapeStringCollection($branchFilter->getIds());
                 $imploded = $idCollection->implode(',');
                 $conditions[] = "phdc.carrier_id IN ($imploded)";
