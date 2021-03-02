@@ -4,25 +4,44 @@
 $container = require __DIR__ . '/autoload.php';
 $feedService = $container->getDatabaseFeedService();
 
-// example 1
-$carrierIterator = $feedService->getHomeDeliveryCarriersByCountry('cz');
+echo "<h2>SDK usage examples</h2>";
+echo "<br>Example 1 - home delivery carriers in Slovakia<br>";
+$carrierIterator = $feedService->getHomeDeliveryCarriersByCountry('sk');
 
 foreach ($carrierIterator as $carrier) {
     echo $carrier->getName();
     echo "<br>";
 }
 
-// example 2
-$filter = new \Packetery\SDK\Feed\BranchFilter();
+echo "<br>Example 2 - paging<br>";
+$filter = new \Packetery\SDK\Feed\CarrierFilter();
 
 $sample = new \Packetery\SDK\Feed\SimpleCarrierSample();
-$sample->setCountry('sk');
-
+$sample->setCountry('cz');
 $filter->setSimpleCarrierSample($sample);
 
-$carrierIterator = $feedService->getSimpleCarriers($filter); // returns every possible sk carrier
+$alreadyDisplayed = ['13']; // czpost
+$filter->setExcludedIds(\Packetery\SDK\StringCollection::createFromStrings($alreadyDisplayed));
+$filter->setLimit(100);
+
+$carrierIterator = $feedService->getSimpleCarriers($filter); // returns every possible sk carrier that was not displayed
 
 foreach ($carrierIterator as $carrier) {
+    echo $carrier->getName();
+    echo "<br>";
+}
+
+echo "<br>Example 3 - get by id<br>";
+$carrier2 = $feedService->getSimpleCarrierById((string)$carrier->getId());
+echo $carrier->getName();
+echo "<br>";
+
+echo "<br>Example 4 - multi datasource action<br>";
+$carrierIterator = $feedService->getHomeDeliveryCarriers();
+$carriers = iterator_to_array($carrierIterator);
+
+echo "carrier count: " . count($carriers) . "<br>";
+foreach ($carriers as $carrier) {
     echo $carrier->getName();
     echo "<br>";
 }

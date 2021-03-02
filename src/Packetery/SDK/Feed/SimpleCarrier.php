@@ -3,7 +3,7 @@
 namespace Packetery\SDK\Feed;
 
 use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
+use Packetery\Utils\Arrays;
 
 /** todo carrier has flag that says if it is HD or PP carrier and contains no list of points
  * Home delivery carrier
@@ -49,27 +49,34 @@ class SimpleCarrier extends Carrier
     /** @var string|null */
     private $labelName;
 
+    private static function parseBool($carrier, $keys)
+    {
+        $value = Arrays::getValue($carrier, $keys, null);
+        if ($value === null) {
+            return null;
+        }
+
+        return BoolVal::parse($value)->getValue();
+    }
+
     public static function createFromFeedArray(array $carrier)
     {
         $instance = parent::createFromFeedArray($carrier);
 
-        if (!empty($carrier['country'])) {
-            $instance->setCountry($carrier['country']);
-        }
+        $instance->setApiAllowed(self::parseBool($carrier, ['apiAllowed']));
+        $instance->setPickupPoints(self::parseBool($carrier, ['pickupPoints']));
+        $instance->setCustomsDeclarations(self::parseBool($carrier, ['customsDeclarations']));
+        $instance->setRequiresEmail(self::parseBool($carrier, ['requiresEmail']));
+        $instance->setRequiresPhone(self::parseBool($carrier, ['requiresPhone']));
+        $instance->setRequiresSize(self::parseBool($carrier, ['requiresSize']));
+        $instance->setSeparateHouseNumber(self::parseBool($carrier, ['separateHouseNumber']));
+        $instance->setDisallowsCod(self::parseBool($carrier, ['disallowsCod']));
 
-        $instance->setApiAllowed(BoolVal::parse($carrier['apiAllowed'])->getValue());
-        $instance->setPickupPoints(BoolVal::parse($carrier['pickupPoints'])->getValue());
-        $instance->setCustomsDeclarations(BoolVal::parse($carrier['customsDeclarations'])->getValue());
-        $instance->setRequiresEmail(BoolVal::parse($carrier['requiresEmail'])->getValue());
-        $instance->setRequiresPhone(BoolVal::parse($carrier['requiresPhone'])->getValue());
-        $instance->setRequiresSize(BoolVal::parse($carrier['requiresSize'])->getValue());
-        $instance->setSeparateHouseNumber(BoolVal::parse($carrier['separateHouseNumber'])->getValue());
-        $instance->setDisallowsCod(BoolVal::parse($carrier['disallowsCod'])->getValue());
-
-        $instance->setCurrency($carrier['currency']);
-        $instance->setLabelName($carrier['labelName']);
-        $instance->setLabelRouting($carrier['labelRouting']);
-        $instance->setMaxWeight($carrier['maxWeight']);
+        $instance->setCountry(Arrays::getValue($carrier, ['country'], null));
+        $instance->setCurrency(Arrays::getValue($carrier, ['currency'], null));
+        $instance->setLabelName(Arrays::getValue($carrier, ['labelName'], null));
+        $instance->setLabelRouting(Arrays::getValue($carrier, ['labelRouting'], null));
+        $instance->setMaxWeight(Arrays::getValue($carrier, ['maxWeight'], null));
 
         return $instance;
     }

@@ -2,7 +2,7 @@
 
 namespace Packetery\SDK;
 
-use Packetery\SDK\Feed\BranchFilter;
+use Packetery\SDK\Feed\CarrierFilter;
 use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
 use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 
@@ -33,12 +33,12 @@ class Client
     }
 
     /**
-     * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
      * @return \Packetery\SDK\CallResult
      */
-    public function getSimpleCarriers(BranchFilter $branchFilter = null)
+    public function getSimpleCarriers(CarrierFilter $branchFilter = null)
     {
-        $params = $branchFilter ? $branchFilter->toApiArray() : [];
+        $params = $branchFilter ? $branchFilter->getApiParams() : [];
         $params['address-delivery'] = '1'; // nevykreslí branches a do carriers dá De Hermes HD i DE Hermes PP bez seznamu pickup pointů
 
         $url = $this->createUrl('branch.json', $params);

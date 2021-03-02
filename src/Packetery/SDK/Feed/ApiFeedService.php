@@ -2,8 +2,6 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\PrimitiveTypeWrapper\IntVal;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 use Packetery\SDK\StringCollection;
 
 class ApiFeedService implements IFeedService
@@ -22,12 +20,13 @@ class ApiFeedService implements IFeedService
     }
 
     /** Returns home delivery carriers
-     * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
-     * @return \Packetery\SDK\Feed\CarrierCollection
+     *
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
+     * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Packetery\SDK\Feed\SimpleCarrier[]
      */
-    public function getSimpleCarriers(BranchFilter $branchFilter = null)
+    public function getSimpleCarriers(CarrierFilter $branchFilter = null)
     {
-        $collection = new CarrierCollection();
+        $collection = new SimpleCarrierCollection();
 
         $count = 0;
         $limit = $branchFilter !== null && $branchFilter->getLimit() !== null && $branchFilter->getLimit()->getValue() > 0 ? $branchFilter->getLimit()->getValue() : null;
@@ -37,15 +36,30 @@ class ApiFeedService implements IFeedService
                 break;
             }
 
-            if ($branchFilter->getIds() !== null) {
-                if (!in_array($carrier->getId(), $branchFilter->getIds()->toValueArray())) {
-                    continue;
+            if ($branchFilter) {
+                if ($branchFilter->getIds() !== null) {
+                    if (!$branchFilter->getIds()->containsValue((string)$carrier->getId())) {
+                        continue;
+                    }
                 }
-            }
+                if ($branchFilter->getExcludedIds() !== null) {
+                    if ($branchFilter->getExcludedIds()->containsValue((string)$carrier->getId())) {
+                        continue;
+                    }
+                }
 
-            if ($branchFilter->getCountry() !== null) {
-                if (!$branchFilter->getCountry()->equals($carrier->getCountry())) {
-                    continue;
+                $carrierSample = $branchFilter->getSimpleCarrierSample();
+                if ($carrierSample) {
+                    if ($carrierSample->getCountry() !== null) {
+                        if ($carrierSample->getCountry() !== $carrier->getCountry()) {
+                            continue;
+                        }
+                    }
+                    if ($carrierSample->isPickupPoints() !== null) {
+                        if ($carrierSample->isPickupPoints() !== $carrier->isPickupPoints()) {
+                            continue;
+                        }
+                    }
                 }
             }
 
@@ -58,25 +72,75 @@ class ApiFeedService implements IFeedService
 
     /**
      * @param $id
-     * @return mixed|null
+     * @return \Packetery\SDK\Feed\SimpleCarrier|null
      */
     public function getSimpleCarrierById($id)
     {
-        $filter = new BranchFilter();
-        $filter->setIds(new StringCollection([$id]));
-        $filter->setLimit(new IntVal(1));
+        $filter = new CarrierFilter();
+        $filter->setIds(StringCollection::createFromStrings([$id]));
+        $filter->setLimit(1);
         $collection = $this->getSimpleCarriers($filter);
         return $collection->first();
     }
 
     /**
      * @param $country
-     * @return \Packetery\SDK\Feed\CarrierCollection
+     * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Packetery\SDK\Feed\SimpleCarrier[]
      */
     public function getSimpleCarriersByCountry($country)
     {
-        $filter = new BranchFilter();
-        $filter->setCountry(StringVal::parse($country));
+        $filter = new CarrierFilter();
+
+        $sample = $filter->getSimpleCarrierSample() ?: new SimpleCarrierSample(); // todo same with db feed
+        $sample->setCountry($country);
+
+        $filter->setSimpleCarrierSample($sample);
+        return $this->getSimpleCarriers($filter);
+    }
+
+    /**
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
+     * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Traversable|\Packetery\SDK\Feed\SimpleCarrier[]
+     */
+    public function getHomeDeliveryCarriers(CarrierFilter $branchFilter = null)
+    {
+        $filter = $branchFilter ?: new CarrierFilter();
+
+        $sample = $filter->getSimpleCarrierSample() ?: new SimpleCarrierSample();
+        $sample->setPickupPoints(false);
+
+        $filter->setSimpleCarrierSample($sample);
+        return $this->getSimpleCarriers($filter);
+    }
+
+    /**
+     * @param string $country
+     * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Traversable|\Packetery\SDK\Feed\SimpleCarrier[]
+     */
+    public function getHomeDeliveryCarriersByCountry($country)
+    {
+        $filter = new CarrierFilter();
+
+        $sample = new SimpleCarrierSample();
+        $sample->setPickupPoints(false);
+        $sample->setCountry($country);
+
+        $filter->setSimpleCarrierSample($sample);
+        return $this->getSimpleCarriers($filter);
+    }
+
+    /**
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
+     * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Traversable|\Packetery\SDK\Feed\SimpleCarrier[]
+     */
+    public function getPickupPointCarriers(CarrierFilter $branchFilter = null)
+    {
+        $filter = $branchFilter ?: new CarrierFilter();
+
+        $sample = $branchFilter->getSimpleCarrierSample() ?: new SimpleCarrierSample();
+        $sample->setPickupPoints(true);
+
+        $filter->setSimpleCarrierSample($sample);
         return $this->getSimpleCarriers($filter);
     }
 }

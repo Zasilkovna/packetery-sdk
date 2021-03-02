@@ -15,11 +15,6 @@ class Container
     /** @var \Packetery\SDK\Config */
     private $config;
 
-    /**
-     * Container constructor.
-     *
-     * @param array $config
-     */
     public function __construct(Config $config)
     {
         $this->config = $config;
@@ -27,9 +22,7 @@ class Container
 
     public function getConnection()
     {
-        $driver = new MysqliDriver();
-        $driver->connect($this->config->getConnection()); // todo does it throw eception?
-        return new Connection($driver); // todo must connect after?
+        return new Connection($this->config);
     }
 
     public function getDatabaseRepository()

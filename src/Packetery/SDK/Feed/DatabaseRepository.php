@@ -19,10 +19,10 @@ class DatabaseRepository
     }
 
     /**
-     * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
      * @return \Packetery\SDK\Database\Result
      */
-    public function findCarriers(BranchFilter $branchFilter = null)
+    public function findCarriers(CarrierFilter $branchFilter = null)
     {
         $conditions = ['1'];
 
@@ -31,6 +31,12 @@ class DatabaseRepository
                 $idCollection = $this->connection->escapeStringCollection($branchFilter->getIds());
                 $imploded = $idCollection->implode(',');
                 $conditions[] = "phdc.carrier_id IN ($imploded)";
+            }
+
+            if ($branchFilter->getExcludedIds() && !$branchFilter->getExcludedIds()->isEmpty()) {
+                $idCollection = $this->connection->escapeStringCollection($branchFilter->getExcludedIds());
+                $imploded = $idCollection->implode(',');
+                $conditions[] = "phdc.carrier_id NOT IN ($imploded)";
             }
 
             $simpleCarrierSample = $branchFilter->getSimpleCarrierSample();
@@ -56,15 +62,15 @@ class DatabaseRepository
         }
 
         $implodedWhere = implode(' AND ', $conditions);
-        $sql = "SELECT phdc.* FROM `{$this->dbPrefix}packetery_carriers` phdc WHERE $implodedWhere $limit";
+        $sql = "SELECT phdc.* FROM `{$this->dbPrefix}packetery_carriers` phdc WHERE $implodedWhere $limit"; // todo fix cache memory issue about unexported branch
         return $this->connection->query($sql);
     }
 
     /**
-     * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
      * @return \Packetery\SDK\Database\Result
      */
-    public function findSimpleCarrier(BranchFilter $branchFilter = null)
+    public function findSimpleCarrier(CarrierFilter $branchFilter = null)
     {
         return $this->findCarriers($branchFilter);
     }

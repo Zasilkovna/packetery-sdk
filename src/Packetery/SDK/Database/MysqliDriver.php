@@ -72,7 +72,6 @@ class MysqliDriver implements IDriver
         $this->query($savepoint ? "SAVEPOINT $savepoint" : 'START TRANSACTION');
     }
 
-
     /**
      * Commits statements in a transaction.
      * @param  string  optional savepoint name
@@ -91,16 +90,6 @@ class MysqliDriver implements IDriver
     public function rollback($savepoint = null)
     {
         $this->query($savepoint ? "ROLLBACK TO SAVEPOINT $savepoint" : 'ROLLBACK');
-    }
-
-    /**
-     * Fetches the row at current position and moves the internal cursor to the next position.
-     * @param  bool     TRUE for associative array, FALSE for numeric
-     * @return array    array on success, nonarray if no next record
-     */
-    public function fetch($assoc)
-    {
-        return mysqli_fetch_array($this->resultSet, $assoc ? MYSQLI_ASSOC : MYSQLI_NUM);
     }
 
     /**
@@ -159,5 +148,10 @@ class MysqliDriver implements IDriver
     public function rewind()
     {
         $this->resultSet->data_seek(0);
+    }
+
+    public function count()
+    {
+        return $this->resultSet->num_rows;
     }
 }

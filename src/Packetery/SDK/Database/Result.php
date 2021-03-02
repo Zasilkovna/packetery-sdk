@@ -12,16 +12,6 @@ class Result implements \IteratorAggregate
         $this->resultDriver = $driver;
     }
 
-    public function fetch($assoc = false)
-    {
-        return $this->resultDriver->fetch($assoc);
-    }
-
-    public function getRowCount()
-    {
-        return $this->resultDriver->getRowCount();
-    }
-
     public function isEmpty()
     {
         return empty($this->resultDriver->getIterator());

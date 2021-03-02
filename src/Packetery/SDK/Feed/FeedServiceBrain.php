@@ -30,7 +30,7 @@ class FeedServiceBrain
         $this->cache = new Cache($cacheStorage);
     }
 
-    private function createSimpleCarrierFeedKey(BranchFilter $branchFilter = null)
+    private function createSimpleCarrierFeedKey(CarrierFilter $branchFilter = null)
     {
         $key = new StringVal('homeDeliveryBranchFeed');
         return $key->append($branchFilter ? $branchFilter->createApiHash() : '');
@@ -41,19 +41,19 @@ class FeedServiceBrain
         return new Duration(Decimal::parse(3600), new DurationUnit(DurationUnit::SECOND));
     }
 
-    public function isSimpleCarrierFeedCached(BranchFilter $branchFilter = null)
+    public function isSimpleCarrierFeedCached(CarrierFilter $branchFilter = null)
     {
         $key = $this->createSimpleCarrierFeedKey($branchFilter);
         return $this->cache->exists($key);
     }
 
-    public function isSimpleCarrierFeedExpired(BranchFilter $branchFilter = null)
+    public function isSimpleCarrierFeedExpired(CarrierFilter $branchFilter = null)
     {
         $key = $this->createSimpleCarrierFeedKey($branchFilter);
         return $this->cache->isExpired($key, $this->createSimpleCarrierFeedDuration());
     }
 
-    public function getSimpleCarrierExport(BranchFilter $branchFilter = null)
+    public function getSimpleCarrierExport(CarrierFilter $branchFilter = null)
     {
         $key = $this->createSimpleCarrierFeedKey($branchFilter);
         $duration = $this->createSimpleCarrierFeedDuration();
@@ -69,7 +69,7 @@ class FeedServiceBrain
         );
     }
 
-    public function getSimpleCarrierExportDecoded(BranchFilter $branchFilter = null)
+    public function getSimpleCarrierExportDecoded(CarrierFilter $branchFilter = null)
     {
         $responseBody = $this->getSimpleCarrierExport($branchFilter);
         return $this->decodeJsonContent($responseBody);
@@ -78,7 +78,7 @@ class FeedServiceBrain
     /**
      * @return \Packetery\SDK\Feed\SimpleCarrier[]|\Generator
      */
-    public function getSimpleCarrierGenerator(BranchFilter $branchFilter = null)
+    public function getSimpleCarrierGenerator(CarrierFilter $branchFilter = null)
     {
         $decoded = $this->getSimpleCarrierExportDecoded($branchFilter);
         $carriers = Arrays::getValue($decoded, ['carriers'], []);

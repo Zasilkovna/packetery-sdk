@@ -25,18 +25,18 @@ class DatabaseFeedService implements IFeedService
         $this->repository = $databaseRepository;
     }
 
-    private function isUpdateNeeded(BranchFilter $branchFilter = null)
+    private function isUpdateNeeded(CarrierFilter $branchFilter = null)
     {
         return !$this->feedServiceBrain->isSimpleCarrierFeedCached($branchFilter) || $this->feedServiceBrain->isSimpleCarrierFeedExpired($branchFilter);
     }
 
-    private function updateData(BranchFilter $branchFilter = null)
+    private function updateData(CarrierFilter $branchFilter = null)
     {
         $generator = $this->feedServiceBrain->getSimpleCarrierGenerator($branchFilter); // going to start new download if isUpdateNeeded()
         foreach ($generator as $SimpleCarrier) {
             $this->connection->transactional(
                 function () use ($SimpleCarrier) {
-                    $filter = new BranchFilter();
+                    $filter = new CarrierFilter();
                     $filter->setIds(StringCollection::createFromStrings([$SimpleCarrier->getId()->getValue()]));
                     $result = $this->repository->findCarriers($filter);
 
@@ -52,11 +52,11 @@ class DatabaseFeedService implements IFeedService
     }
 
     /**
-     * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
      * @return \Packetery\SDK\Feed\SimpleCarrierIterator
      * @throws \Exception
      */
-    public function getSimpleCarriers(BranchFilter $branchFilter = null)
+    public function getSimpleCarriers(CarrierFilter $branchFilter = null)
     {
         if ($this->isUpdateNeeded($branchFilter)) {
             $this->updateData($branchFilter);
@@ -72,9 +72,9 @@ class DatabaseFeedService implements IFeedService
      */
     public function getSimpleCarrierById($id)
     {
-        $branchFilter = new BranchFilter();
+        $branchFilter = new CarrierFilter();
         $branchFilter->setIds(StringCollection::createFromStrings([$id]));
-        $branchFilter->setLimit(new IntVal(1));
+        $branchFilter->setLimit(1);
         return $this->getSimpleCarriers($branchFilter)->first();
     }
 
@@ -85,7 +85,7 @@ class DatabaseFeedService implements IFeedService
      */
     public function getSimpleCarriersByCountry($country)
     {
-        $branchFilter = new BranchFilter();
+        $branchFilter = new CarrierFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setCountry($country);
@@ -94,9 +94,9 @@ class DatabaseFeedService implements IFeedService
         return $this->getSimpleCarriers($branchFilter);
     }
 
-    public function getHomeDeliveryCarriers(BranchFilter $branchFilter = null)
+    public function getHomeDeliveryCarriers(CarrierFilter $branchFilter = null)
     {
-        $branchFilter = $branchFilter ?: new BranchFilter();
+        $branchFilter = $branchFilter ?: new CarrierFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setPickupPoints(false);
@@ -112,7 +112,7 @@ class DatabaseFeedService implements IFeedService
      */
     public function getHomeDeliveryCarriersByCountry($country)
     {
-        $branchFilter = new BranchFilter();
+        $branchFilter = new CarrierFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setPickupPoints(false);
@@ -122,9 +122,9 @@ class DatabaseFeedService implements IFeedService
         return $this->getSimpleCarriers($branchFilter);
     }
 
-    public function getPickupPointCarriers(BranchFilter $branchFilter = null)
+    public function getPickupPointCarriers(CarrierFilter $branchFilter = null)
     {
-        $branchFilter = $branchFilter ?: new BranchFilter();
+        $branchFilter = $branchFilter ?: new CarrierFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setPickupPoints(true);

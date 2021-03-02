@@ -7,10 +7,11 @@ use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 interface IFeedService
 {
     /** Returns home delivery carriers by specified filter
-     * @param \Packetery\SDK\Feed\BranchFilter|null $branchFilter
+     *
+     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
      * @return \Traversable
      */
-    public function getSimpleCarriers(BranchFilter $branchFilter = null);
+    public function getSimpleCarriers(CarrierFilter $branchFilter = null);
 
     /**
      * @param string $id
@@ -28,7 +29,7 @@ interface IFeedService
      * @param string $country
      * @return \Traversable
      */
-    public function getHomeDeliveryCarriers(BranchFilter $branchFilter = null);
+    public function getHomeDeliveryCarriers(CarrierFilter $branchFilter = null);
 
     /**
      * @param string $country
@@ -40,5 +41,5 @@ interface IFeedService
      * @param string $country
      * @return \Traversable
      */
-    public function getPickupPointCarriers(BranchFilter $branchFilter = null);
+    public function getPickupPointCarriers(CarrierFilter $branchFilter = null);
 }
