@@ -5,8 +5,8 @@ namespace Packetery\Tests;
 require __DIR__ . '/../autoload.php';
 
 use Mockery;
-use Packetery\SDK\CallResult;
-use Packetery\SDK\Client;
+use Packetery\SDK\Client\CallResult;
+use Packetery\SDK\Client\Client;
 use Packetery\SDK\Config;
 use Packetery\SDK\Container;
 use Packetery\SDK\Database\Connection;
@@ -18,10 +18,6 @@ use Packetery\SDK\Feed\DatabaseRepository;
 use Packetery\SDK\Feed\FeedServiceBrain;
 use Packetery\SDK\Feed\SimpleCarrier;
 use Packetery\SDK\Feed\SimpleCarrierIterator;
-use Packetery\SDK\FileStorage;
-use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
-use Packetery\SDK\PrimitiveTypeWrapper\IntVal;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 use Packetery\Utils\Json;
 
 class DatabaseFeedServiceTest extends BaseTest
@@ -29,17 +25,7 @@ class DatabaseFeedServiceTest extends BaseTest
 
     public function testClassAutoload()
     {
-        $container = require __DIR__ . '/../../autoload.php';
-        $container2 = require __DIR__ . '/../../autoload.php';
-
-        $this->assertTrue($container === $container2, 'Only one instance of container is allowed');
-
-        $this->assertInstanceOf(
-            Container::class,
-            $container,
-            'Container was not loaded properly'
-        );
-
+        $this->assertTrue(class_exists(Container::class), 'Container class was not loaded');
         $this->assertTrue(class_exists(Config::class), 'Config class was not loaded');
         $this->assertTrue(class_exists(DatabaseFeedService::class), 'DatabaseFeedService class was not loaded');
     }
@@ -86,18 +72,18 @@ class DatabaseFeedServiceTest extends BaseTest
         $client = Mockery::mock(Client::class);
         $client->shouldReceive('getSimpleCarriers')->andReturn(
             new CallResult(
-                new BoolVal(true),
-                StringVal::create(
-                    Json::encode(
-                        [
-                            'carriers' => [
-                                [
-                                    'id' => 13,
-                                    'name' => 'česká pošta',
-                                ]
+                true,
+                (
+                Json::encode(
+                    [
+                        'carriers' => [
+                            [
+                                'id' => 13,
+                                'name' => 'česká pošta',
                             ]
                         ]
-                    )
+                    ]
+                )
                 )
             )
         );
@@ -147,8 +133,8 @@ class DatabaseFeedServiceTest extends BaseTest
         $carrier = $carrierIterator->first();
 
         $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
-        $this->assertEquals('13', $carrier->getId()->getValue());
-        $this->assertEquals('česká pošta', $carrier->getName()->getValue());
+        $this->assertEquals('13', $carrier->getId());
+        $this->assertEquals('česká pošta', $carrier->getName());
         $this->assertEquals(false, $carrier->isPickupPoints());
         $this->assertEquals(true, $carrier->isApiAllowed());
         $this->assertEquals(true, $carrier->isDisallowsCod());
@@ -170,6 +156,7 @@ class DatabaseFeedServiceTest extends BaseTest
     {
         $container = $this->createContainer();
         $service = $container->getDatabaseFeedService();
+        $service->updateData();
         $carrierIterator = $service->getSimpleCarriersByCountry('cz');
         $carrier = $carrierIterator->first();
 
@@ -188,18 +175,18 @@ class DatabaseFeedServiceTest extends BaseTest
         $carrierIterator = $service->getPickupPointCarriers();
         $carrier = $carrierIterator->first();
 
-        $this->assertNotEmpty($carrier->getId()->getValue(), 'carrier id is empty');
-        $this->assertNotEmpty($carrier->getName()->getValue(), 'carrier name is empty');
+        $this->assertNotEmpty($carrier->getId(), 'carrier id is empty');
+        $this->assertNotEmpty($carrier->getName(), 'carrier name is empty');
         $this->assertNotEmpty($carrier->getCountry(), 'carrier id is empty');
         $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
 
-        $carrierById = $service->getSimpleCarrierById($carrier->getId()->getValue());
+        $carrierById = $service->getSimpleCarrierById($carrier->getId());
 
-        $this->assertNotEmpty($carrier->getId()->getValue(), 'carrier id is empty');
-        $this->assertNotEmpty($carrierById->getId()->getValue(), '$carrierById carrier id is empty');
+        $this->assertNotEmpty($carrier->getId(), 'carrier id is empty');
+        $this->assertNotEmpty($carrierById->getId(), '$carrierById carrier id is empty');
         $this->assertInstanceOf(SimpleCarrier::class, $carrierById, 'carrier is not SimpleCarrier');
-        $this->assertEquals($carrier->getId()->getValue(), $carrierById->getId()->getValue(),'$carrierById id has different value');
-        $this->assertEquals($carrier->getName()->getValue(), $carrierById->getName()->getValue(),'$carrierById name has different name');
+        $this->assertEquals($carrier->getId(), $carrierById->getId(), '$carrierById id has different value');
+        $this->assertEquals($carrier->getName(), $carrierById->getName(), '$carrierById name has different name');
 
         $filter = new CarrierFilter();
         $filter->setLimit(2);
@@ -210,6 +197,6 @@ class DatabaseFeedServiceTest extends BaseTest
         $this->assertCount(2, $data, 'limit or iterator or feed db sync doesnt work');
 
         $this->assertNotEquals($carrier1 = array_shift($data), $carrier2 = array_shift($data), 'data items are same');
-        $this->assertNotEquals($carrier1->getId()->getValue(), $carrier2->getId()->getValue(), 'data items are same');
+        $this->assertNotEquals($carrier1->getId(), $carrier2->getId(), 'data items are same');
     }
 }

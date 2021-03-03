@@ -1,8 +1,10 @@
 <?php
 
-/** @var \Packetery\SDK\Container $container */
-$container = require __DIR__ . '/autoload.php';
+require __DIR__ . '/autoload.php';
+
+$container = \Packetery\SDK\Container::create(require __DIR__ . '/config.php');
 $feedService = $container->getDatabaseFeedService();
+$feedService->updateData();
 
 echo "<h2>SDK usage examples</h2>";
 echo "<br>Example 1 - home delivery carriers in Slovakia<br>";
@@ -21,7 +23,7 @@ $sample->setCountry('cz');
 $filter->setSimpleCarrierSample($sample);
 
 $alreadyDisplayed = ['13']; // czpost
-$filter->setExcludedIds(\Packetery\SDK\StringCollection::createFromStrings($alreadyDisplayed));
+$filter->setExcludedIds(($alreadyDisplayed));
 $filter->setLimit(100);
 
 $carrierIterator = $feedService->getSimpleCarriers($filter); // returns every possible sk carrier that was not displayed

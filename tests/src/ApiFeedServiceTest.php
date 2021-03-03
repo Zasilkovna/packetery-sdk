@@ -2,13 +2,13 @@
 
 namespace Packetery\Tests;
 
+use Mockery;
 use Packetery\Domain\InvalidArgumentException;
 use Packetery\SDK\Feed\ApiFeedService;
 use Packetery\SDK\Feed\CarrierFilter;
 use Packetery\SDK\Feed\FeedServiceBrain;
 use Packetery\SDK\Feed\SimpleCarrier;
 use Packetery\SDK\Feed\SimpleCarrierSample;
-use Packetery\SDK\StringCollection;
 
 require __DIR__ . '/../autoload.php';
 
@@ -51,17 +51,20 @@ class ApiFeedServiceTest extends BaseTest
         $generatorData = $this->createSimpleCarrierCollection();
 
         /** @var ApiFeedService $service */
-        $service = \Mockery::mock(ApiFeedService::class, [
-            \Mockery::mock(FeedServiceBrain::class)->shouldReceive('getSimpleCarrierGenerator')->andReturn($generatorData->getIterator())->getMock()
-        ])->makePartial();
+        $service = Mockery::mock(
+            ApiFeedService::class,
+            [
+                Mockery::mock(FeedServiceBrain::class)->shouldReceive('getSimpleCarrierGenerator')->andReturn($generatorData->getIterator())->getMock()
+            ]
+        )->makePartial();
 
         $filter = new CarrierFilter();
-        $filter->setIds(StringCollection::createFromStrings(['13', '14']));
+        $filter->setIds((['13', '14']));
         $result = $service->getSimpleCarriers($filter);
         $this->checkCollections($filter, $result);
 
         $filter = new CarrierFilter();
-        $filter->setIds(StringCollection::createFromStrings(['13', '14']));
+        $filter->setIds((['13', '14']));
 
         $sample = new SimpleCarrierSample();
         $sample->setCountry('cz');
@@ -71,7 +74,7 @@ class ApiFeedServiceTest extends BaseTest
         $this->checkCollections($filter, $result);
 
         $filter = new CarrierFilter();
-        $filter->setIds(StringCollection::createFromStrings(['13', '14']));
+        $filter->setIds((['13', '14']));
 
         $sample = new SimpleCarrierSample();
         $sample->setCountry('de');
@@ -102,18 +105,22 @@ class ApiFeedServiceTest extends BaseTest
 
     public function testDeniedSampleMethods()
     {
-        $this->assertException(InvalidArgumentException::class, function () {
-            $sample = new SimpleCarrierSample();
-            $sample->setName('czpost');
-        }, 'SimpleCarrierSample __call check not working');
+        $this->assertException(
+            InvalidArgumentException::class,
+            function () {
+                $sample = new SimpleCarrierSample();
+                $sample->setName('czpost');
+            },
+            'SimpleCarrierSample __call check not working'
+        );
     }
 
     private function checkCollections($filter, $result)
     {
-        $this->assertEquals($filter->getIds()->count(), $result->count(), 'incorrect count');
+        $this->assertEquals(count($filter->getIds()), $result->count(), 'incorrect count');
 
         foreach ($result as $carrier) {
-            $this->assertTrue($filter->getIds()->containsValue($carrier->getId()), 'incorrect content');
+            $this->assertTrue(in_array($carrier->getId(), $filter->getIds()), 'incorrect content');
         }
     }
 }

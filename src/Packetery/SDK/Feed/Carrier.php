@@ -2,23 +2,21 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
-
 class Carrier
 {
-    /** @var StringVal */
+    /** @var string */
     private $id;
 
-    /** @var StringVal */
+    /** @var string */
     private $name;
 
     /**
      * Carrier constructor.
      *
-     * @param StringVal $id
-     * @param StringVal $name
+     * @param string $id
+     * @param string $name
      */
-    public function __construct(StringVal $id, StringVal $name)
+    public function __construct($id, $name)
     {
         $this->id = $id;
         $this->name = $name;
@@ -26,11 +24,11 @@ class Carrier
 
     public static function createFromFeedArray(array $carrier)
     {
-        return new static(StringVal::create((string)$carrier['id']), StringVal::create($carrier['name']));
+        return new static(((string)$carrier['id']), ($carrier['name']));
     }
 
     /**
-     * @return \Packetery\SDK\PrimitiveTypeWrapper\StringVal
+     * @return  string
      */
     public function getId()
     {
@@ -38,7 +36,7 @@ class Carrier
     }
 
     /**
-     * @return \Packetery\SDK\PrimitiveTypeWrapper\StringVal
+     * @return  string
      */
     public function getName()
     {

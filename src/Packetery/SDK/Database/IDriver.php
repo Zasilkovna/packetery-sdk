@@ -20,4 +20,5 @@ interface IDriver extends \Iterator, \Countable
     public function rollback($savepoint = null);
     public function begin($savepoint = null);
     public function free();
+    public function isConnected();
 }

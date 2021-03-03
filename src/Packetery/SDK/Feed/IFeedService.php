@@ -2,8 +2,6 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
-
 interface IFeedService
 {
     /** Returns home delivery carriers by specified filter

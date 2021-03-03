@@ -4,8 +4,9 @@ return [
     'parameters' => [
         'tablePrefix' => 'zasilkovna_',
         'tempFolder' => __DIR__ . '/../temp',
-        'apiKey' => 'asksksjsjsjsjsjieiesksprieueuiow',
+        'apiKey' => 'asksksjsjsjsjsjieiesksprieueuiow', // see client.packeta.com
         'apiBaseUrl' => 'http://www.zasilkovna.cz/api',
+        // if driver is already connected then connection params are not used
 		'connection' => [
 			'host' => 'host.docker.internal',
 			'port' => '3306',
@@ -14,6 +15,5 @@ return [
 			'user' => 'user',
 			'password' => 'jsaoioijewoijsareiudsoieoispqqqq',
 		]
-
     ]
 ];

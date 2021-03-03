@@ -24,18 +24,19 @@ class DatabaseRepository
      */
     public function findCarriers(CarrierFilter $branchFilter = null)
     {
+        $limit = '';
         $conditions = ['1'];
 
         if ($branchFilter) {
-            if ($branchFilter->getIds() && !$branchFilter->getIds()->isEmpty()) {
+            if (!empty($branchFilter->getIds())) {
                 $idCollection = $this->connection->escapeStringCollection($branchFilter->getIds());
-                $imploded = $idCollection->implode(',');
+                $imploded = implode(',', $idCollection);
                 $conditions[] = "phdc.carrier_id IN ($imploded)";
             }
 
-            if ($branchFilter->getExcludedIds() && !$branchFilter->getExcludedIds()->isEmpty()) {
+            if (!empty($branchFilter->getExcludedIds())) {
                 $idCollection = $this->connection->escapeStringCollection($branchFilter->getExcludedIds());
-                $imploded = $idCollection->implode(',');
+                $imploded = implode(',', $idCollection);
                 $conditions[] = "phdc.carrier_id NOT IN ($imploded)";
             }
 
@@ -48,15 +49,14 @@ class DatabaseRepository
                 }
 
                 if ($simpleCarrierSample->isPickupPoints() === false) {
-                    $conditions = ['phdc.pickupPoints = 0'];
+                    $conditions[] = 'phdc.pickupPoints = 0';
                 } else if ($simpleCarrierSample->isPickupPoints() === true) {
-                    $conditions = ['phdc.pickupPoints = 1'];
+                    $conditions[] = 'phdc.pickupPoints = 1';
                 }
             }
 
-            $limit = '';
-            if ($branchFilter->getLimit() && $branchFilter->getLimit()->getValue() > 0) {
-                $limitValue = $branchFilter->getLimit()->getValue();
+            if ($branchFilter->getLimit() && $branchFilter->getLimit() > 0) {
+                $limitValue = $branchFilter->getLimit();
                 $limit = " LIMIT $limitValue";
             }
         }

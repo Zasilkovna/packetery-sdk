@@ -1,6 +1,6 @@
 <?php
 
-namespace Packetery\SDK;
+namespace Packetery\SDK\Client;
 
 class ClientException extends \Exception
 {

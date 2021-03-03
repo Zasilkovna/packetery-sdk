@@ -3,11 +3,7 @@
 namespace Packetery\SDK\Feed;
 
 use Packetery\SDK\Cache;
-use Packetery\SDK\Decimal;
-use Packetery\SDK\Duration;
-use Packetery\SDK\DurationUnit;
-use Packetery\SDK\IStorage;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
+use Packetery\SDK\Storage\IStorage;
 use Packetery\Utils\Arrays;
 use Packetery\Utils\Json;
 
@@ -16,71 +12,38 @@ class FeedServiceBrain
     /** @var \Packetery\SDK\Cache */
     private $cache;
 
-    /** @var \Packetery\SDK\Client */
+    /** @var \Packetery\SDK\Client\Client */
     private $client;
 
     /**
      * ApiFeedService constructor.
      *
-     * @param \Packetery\SDK\Client $client
+     * @param \Packetery\SDK\Client\Client $client
      */
-    public function __construct(\Packetery\SDK\Client $client, IStorage $cacheStorage)
+    public function __construct(\Packetery\SDK\Client\Client $client, IStorage $cacheStorage)
     {
         $this->client = $client;
         $this->cache = new Cache($cacheStorage);
     }
 
-    private function createSimpleCarrierFeedKey(CarrierFilter $branchFilter = null)
+    public function getSimpleCarrierExport()
     {
-        $key = new StringVal('homeDeliveryBranchFeed');
-        return $key->append($branchFilter ? $branchFilter->createApiHash() : '');
+        $callResult = $this->client->getSimpleCarriers();
+        return $callResult->getResponseBody();
     }
 
-    private function createSimpleCarrierFeedDuration()
+    public function getSimpleCarrierExportDecoded()
     {
-        return new Duration(Decimal::parse(3600), new DurationUnit(DurationUnit::SECOND));
-    }
-
-    public function isSimpleCarrierFeedCached(CarrierFilter $branchFilter = null)
-    {
-        $key = $this->createSimpleCarrierFeedKey($branchFilter);
-        return $this->cache->exists($key);
-    }
-
-    public function isSimpleCarrierFeedExpired(CarrierFilter $branchFilter = null)
-    {
-        $key = $this->createSimpleCarrierFeedKey($branchFilter);
-        return $this->cache->isExpired($key, $this->createSimpleCarrierFeedDuration());
-    }
-
-    public function getSimpleCarrierExport(CarrierFilter $branchFilter = null)
-    {
-        $key = $this->createSimpleCarrierFeedKey($branchFilter);
-        $duration = $this->createSimpleCarrierFeedDuration();
-        return $this->cache->load(
-            $key,
-            function () use ($branchFilter) {
-                $callResult = $this->client->getSimpleCarriers($branchFilter);
-                return $callResult->getResponseBody();
-            },
-            [
-                Cache::OPTION_EXPIRATION => $duration->toSeconds()
-            ]
-        );
-    }
-
-    public function getSimpleCarrierExportDecoded(CarrierFilter $branchFilter = null)
-    {
-        $responseBody = $this->getSimpleCarrierExport($branchFilter);
+        $responseBody = $this->getSimpleCarrierExport();
         return $this->decodeJsonContent($responseBody);
     }
 
     /**
      * @return \Packetery\SDK\Feed\SimpleCarrier[]|\Generator
      */
-    public function getSimpleCarrierGenerator(CarrierFilter $branchFilter = null)
+    public function getSimpleCarrierGenerator()
     {
-        $decoded = $this->getSimpleCarrierExportDecoded($branchFilter);
+        $decoded = $this->getSimpleCarrierExportDecoded();
         $carriers = Arrays::getValue($decoded, ['carriers'], []);
         foreach ($carriers as $key => $carrier) {
             yield $key => SimpleCarrier::createFromFeedArray($carrier); // so it does not matter how many items there are
@@ -88,12 +51,12 @@ class FeedServiceBrain
     }
 
     /**
-     * @param \Packetery\SDK\PrimitiveTypeWrapper\StringVal|null $jsonContent
+     * @param string|null $jsonContent
      * @return array|null
      */
-    private function decodeJsonContent(StringVal $jsonContent = null)
+    private function decodeJsonContent($jsonContent = null)
     {
-        if ($jsonContent === null || $jsonContent->isEmpty()) {
+        if (empty($jsonContent)) {
             return null;
         }
 
