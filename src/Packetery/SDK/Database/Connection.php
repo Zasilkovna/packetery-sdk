@@ -2,8 +2,8 @@
 
 namespace Packetery\SDK\Database;
 
+use Exception;
 use Packetery\SDK\Config;
-use Packetery\SDK\StringCollection;
 
 class Connection
 {
@@ -13,15 +13,14 @@ class Connection
     /** @var Config */
     private $config;
 
-    /** @var bool  */
-    private $connected = false;
+    /** @var bool */
+    private $connected;
 
-    public function __construct(Config $config)
+    public function __construct(Config $config, IDriver $driver)
     {
         $this->config = $config;
-
-        $driver = new MysqliDriver();
         $this->driver = $driver;
+        $this->connected = $driver->isConnected();
     }
 
     public function connect()
@@ -45,16 +44,16 @@ class Connection
         return new Result($this->getDriver()->query((string)$sql));
     }
 
-    public function escapeStringCollection(StringCollection $input)
+    public function escapeStringCollection(array $input)
     {
         $remapped = array_map(
             function ($value) {
                 return $this->getDriver()->escapeText($value);
             },
-            $input->toValueArray()
+            $input
         );
 
-        return StringCollection::createFromStrings($remapped);
+        return $remapped;
     }
 
     public function escapeText($input)
@@ -69,7 +68,7 @@ class Connection
         try {
             call_user_func_array($callback, []);
             $transaction->commit();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $transaction->rollback();
             throw $exception;
         }

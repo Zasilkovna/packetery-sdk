@@ -2,8 +2,6 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\StringCollection;
-
 class ApiFeedService implements IFeedService
 {
     /** @var \Packetery\SDK\Feed\FeedServiceBrain */
@@ -29,7 +27,7 @@ class ApiFeedService implements IFeedService
         $collection = new SimpleCarrierCollection();
 
         $count = 0;
-        $limit = $branchFilter !== null && $branchFilter->getLimit() !== null && $branchFilter->getLimit()->getValue() > 0 ? $branchFilter->getLimit()->getValue() : null;
+        $limit = $branchFilter !== null && $branchFilter->getLimit() !== null && $branchFilter->getLimit() > 0 ? $branchFilter->getLimit() : null;
         $carriers = $this->feedServiceBrain->getSimpleCarrierGenerator();
         foreach ($carriers as $carrier) {
             if ($limit !== null && $count > $limit) {
@@ -38,12 +36,13 @@ class ApiFeedService implements IFeedService
 
             if ($branchFilter) {
                 if ($branchFilter->getIds() !== null) {
-                    if (!$branchFilter->getIds()->containsValue((string)$carrier->getId())) {
+                    if (!in_array($carrier->getId(), $branchFilter->getIds())) {
                         continue;
                     }
                 }
+
                 if ($branchFilter->getExcludedIds() !== null) {
-                    if ($branchFilter->getExcludedIds()->containsValue((string)$carrier->getId())) {
+                    if (in_array($carrier->getId(), $branchFilter->getExcludedIds())) {
                         continue;
                     }
                 }
@@ -77,7 +76,7 @@ class ApiFeedService implements IFeedService
     public function getSimpleCarrierById($id)
     {
         $filter = new CarrierFilter();
-        $filter->setIds(StringCollection::createFromStrings([$id]));
+        $filter->setIds(([$id]));
         $filter->setLimit(1);
         $collection = $this->getSimpleCarriers($filter);
         return $collection->first();

@@ -2,16 +2,14 @@
 
 namespace Packetery\Tests;
 
+use Exception;
 use Packetery\SDK\Cache;
 use Packetery\SDK\Config;
 use Packetery\SDK\Container;
-use Packetery\SDK\Decimal;
-use Packetery\SDK\Duration;
-use Packetery\SDK\DurationUnit;
+use Packetery\SDK\Database\MysqliDriver;
 use Packetery\SDK\Feed\SimpleCarrier;
 use Packetery\SDK\Feed\SimpleCarrierCollection;
-use Packetery\SDK\FileStorage;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
+use Packetery\SDK\Storage\FileStorage;
 use Packetery\Utils\FS;
 use PHPUnit\Framework\TestCase;
 
@@ -41,44 +39,44 @@ abstract class BaseTest extends TestCase
 
     protected function createCacheFileStorage()
     {
-        return new FileStorage(Cache::createCacheFolder(StringVal::create(__DIR__ . '/temp')));
+        return new FileStorage(Cache::createCacheFolder((__DIR__ . '/temp')));
     }
 
     protected function createDuration($decimal)
     {
-        return new Duration(Decimal::parse($decimal), new DurationUnit(DurationUnit::SECOND));
+        return (float)$decimal;
     }
 
     protected function createContainer()
     {
-        return new Container($this->config);
+        return new Container($this->config, new MysqliDriver());
     }
 
     protected function createSimpleCarrierCollection()
     {
         $collection = new SimpleCarrierCollection();
 
-        $carrier = new SimpleCarrier(StringVal::parse('13'), StringVal::parse('CZ POST HD'));
+        $carrier = new SimpleCarrier(('13'), ('CZ POST HD'));
         $carrier->setCountry('cz');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier(StringVal::parse('14'), StringVal::parse('CZ DPD HD'));
+        $carrier = new SimpleCarrier(('14'), ('CZ DPD HD'));
         $carrier->setCountry('cz');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier(StringVal::parse('15'), StringVal::parse('DE HERMES HD'));
+        $carrier = new SimpleCarrier(('15'), ('DE HERMES HD'));
         $carrier->setCountry('de');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier(StringVal::parse('16'), StringVal::parse('DE HERMES PP'));
+        $carrier = new SimpleCarrier(('16'), ('DE HERMES PP'));
         $carrier->setCountry('de');
         $carrier->setPickupPoints(true);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier(StringVal::parse('17'), StringVal::parse('SK POST HD'));
+        $carrier = new SimpleCarrier(('17'), ('SK POST HD'));
         $carrier->setCountry('sk');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
@@ -92,7 +90,8 @@ abstract class BaseTest extends TestCase
 
         try {
             call_user_func_array($callback, []);
-        } catch (\Exception $exception) {}
+        } catch (Exception $exception) {
+        }
 
         $this->assertInstanceOf($exceptionClass, $exception, $message);
     }

@@ -2,7 +2,6 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
 use Packetery\Utils\Arrays;
 
 /** todo carrier has flag that says if it is HD or PP carrier and contains no list of points
@@ -56,7 +55,13 @@ class SimpleCarrier extends Carrier
             return null;
         }
 
-        return BoolVal::parse($value)->getValue();
+        if ($value === 'true') {
+            $value = true;
+        } elseif ($value === 'false') {
+            $value = false;
+        }
+
+        return (bool) $value;
     }
 
     public static function createFromFeedArray(array $carrier)

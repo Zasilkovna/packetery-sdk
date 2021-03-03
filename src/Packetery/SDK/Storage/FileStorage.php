@@ -1,23 +1,21 @@
 <?php
 
-namespace Packetery\SDK;
+namespace Packetery\SDK\Storage;
 
 use Packetery\Domain\InvalidArgumentException;
 use Packetery\Domain\InvalidStateException;
-use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 
 class FileStorage implements IStorage
 {
-    /** @var \Packetery\SDK\PrimitiveTypeWrapper\StringVal */
+    /** @var string */
     private $dir;
 
     /**
      * FileStorage constructor.
      *
-     * @param \Packetery\SDK\PrimitiveTypeWrapper\StringVal $dir
+     * @param string $dir
      */
-    public function __construct(PrimitiveTypeWrapper\StringVal $dir)
+    public function __construct($dir)
     {
         $this->dir = $dir;
 
@@ -26,7 +24,7 @@ class FileStorage implements IStorage
         }
     }
 
-    public function get(StringVal $key)
+    public function get($key)
     {
         $file = $this->getFilePath($key);
 
@@ -39,16 +37,16 @@ class FileStorage implements IStorage
             throw new InvalidStateException('does cache folder exist?');
         }
 
-        return new StringVal($content);
+        return ($content);
     }
 
-    public function set(StringVal $key, StringVal $content)
+    public function set($key, $content)
     {
         $file = $this->getExistingFilePath($key);
         file_put_contents($file, $content);
     }
 
-    public function duration(StringVal $key)
+    public function duration($key)
     {
         $file = $this->getFilePath($key);
 
@@ -62,10 +60,10 @@ class FileStorage implements IStorage
         }
 
         $duration = time() - $duration;
-        return new Duration(Decimal::parse($duration), new DurationUnit(DurationUnit::SECOND));
+        return (float)$duration;
     }
 
-    private function getExistingFilePath(StringVal $key)
+    private function getExistingFilePath($key)
     {
         $file = $this->getFilePath($key);
         if (!file_exists($file)) {
@@ -75,24 +73,24 @@ class FileStorage implements IStorage
         return $file;
     }
 
-    private function getFilePath(StringVal $key)
+    private function getFilePath($key)
     {
         $hash = $this->createHash($key);
         return $this->dir . DIRECTORY_SEPARATOR . $hash;
     }
 
-    private function createHash(StringVal $key)
+    private function createHash($key)
     {
         return md5((string)$key);
     }
 
-    function remove(StringVal $key)
+    function remove($key)
     {
         $file = $this->getFilePath($key);
         @unlink($file);
     }
 
-    function exists(StringVal $key)
+    function exists($key)
     {
         return file_exists($this->getFilePath($key));
     }

@@ -3,9 +3,6 @@
 namespace Packetery\SDK\Feed;
 
 use Packetery\SDK\Database\Connection;
-use Packetery\SDK\PrimitiveTypeWrapper\IntVal;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
-use Packetery\SDK\StringCollection;
 
 class DatabaseFeedService implements IFeedService
 {
@@ -25,19 +22,17 @@ class DatabaseFeedService implements IFeedService
         $this->repository = $databaseRepository;
     }
 
-    private function isUpdateNeeded(CarrierFilter $branchFilter = null)
+    /**
+     * synces database with feed export data
+     */
+    public function updateData()
     {
-        return !$this->feedServiceBrain->isSimpleCarrierFeedCached($branchFilter) || $this->feedServiceBrain->isSimpleCarrierFeedExpired($branchFilter);
-    }
-
-    private function updateData(CarrierFilter $branchFilter = null)
-    {
-        $generator = $this->feedServiceBrain->getSimpleCarrierGenerator($branchFilter); // going to start new download if isUpdateNeeded()
+        $generator = $this->feedServiceBrain->getSimpleCarrierGenerator(); // going to start new download
         foreach ($generator as $SimpleCarrier) {
             $this->connection->transactional(
                 function () use ($SimpleCarrier) {
                     $filter = new CarrierFilter();
-                    $filter->setIds(StringCollection::createFromStrings([$SimpleCarrier->getId()->getValue()]));
+                    $filter->setIds(([$SimpleCarrier->getId()]));
                     $result = $this->repository->findCarriers($filter);
 
                     // todo multi insert?
@@ -58,10 +53,6 @@ class DatabaseFeedService implements IFeedService
      */
     public function getSimpleCarriers(CarrierFilter $branchFilter = null)
     {
-        if ($this->isUpdateNeeded($branchFilter)) {
-            $this->updateData($branchFilter);
-        }
-
         $result = $this->repository->findCarriers($branchFilter);
         return new SimpleCarrierIterator($result->getIterator());
     }
@@ -73,7 +64,7 @@ class DatabaseFeedService implements IFeedService
     public function getSimpleCarrierById($id)
     {
         $branchFilter = new CarrierFilter();
-        $branchFilter->setIds(StringCollection::createFromStrings([$id]));
+        $branchFilter->setIds(([$id]));
         $branchFilter->setLimit(1);
         return $this->getSimpleCarriers($branchFilter)->first();
     }
@@ -98,7 +89,7 @@ class DatabaseFeedService implements IFeedService
     {
         $branchFilter = $branchFilter ?: new CarrierFilter();
 
-        $sample = new SimpleCarrierSample();
+        $sample = $branchFilter->getSimpleCarrierSample() ?: new SimpleCarrierSample();
         $sample->setPickupPoints(false);
         $branchFilter->setSimpleCarrierSample($sample);
 
@@ -126,7 +117,7 @@ class DatabaseFeedService implements IFeedService
     {
         $branchFilter = $branchFilter ?: new CarrierFilter();
 
-        $sample = new SimpleCarrierSample();
+        $sample = $branchFilter->getSimpleCarrierSample() ?: new SimpleCarrierSample();
         $sample->setPickupPoints(true);
         $branchFilter->setSimpleCarrierSample($sample);
 

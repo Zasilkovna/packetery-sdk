@@ -19,7 +19,7 @@ class MysqliDriver implements IDriver
 
         $error = mysqli_error($this->connection);
         if (!empty($error)) {
-            throw new DriverException($error);
+            throw new DriverException($error . "\n" . $sql);
         }
 
         $resultDriver = clone $this;
@@ -105,11 +105,6 @@ class MysqliDriver implements IDriver
         $this->resultSet = null;
     }
 
-    public function __destruct()
-    {
-        $this->free();
-    }
-
     public function getIterator()
     {
         return $this->resultSet ? $this : new \ArrayIterator([]);
@@ -153,5 +148,10 @@ class MysqliDriver implements IDriver
     public function count()
     {
         return $this->resultSet->num_rows;
+    }
+
+    public function isConnected()
+    {
+        return $this->connection !== null;
     }
 }

@@ -2,37 +2,32 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\PrimitiveTypeWrapper\IntVal;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
-use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
-use Packetery\SDK\StringCollection;
-
 class CarrierFilter
 {
-    /** @var StringCollection|null */
+    /** @var array|null */
     private $ids;
 
-    /** @var StringCollection|null */
+    /** @var array|null */
     private $excludedIds;
 
     /** @var array */
     private $apiParams = [];
 
-    /** @var IntVal|null */
+    /** @var int|null */
     private $limit;
 
     /** @var \Packetery\SDK\Feed\SimpleCarrierSample|null */
     private $simpleCarrierSample;
 
     /**
-     * @return \Packetery\SDK\StringCollection|null
+     * @return array|null
      */
     public function getExcludedIds()
     {
         return $this->excludedIds;
     }
 
-    public function setExcludedIds(StringCollection $excludedIds = null)
+    public function setExcludedIds(array $excludedIds = null)
     {
         $this->excludedIds = $excludedIds;
     }
@@ -51,7 +46,7 @@ class CarrierFilter
     }
 
     /**
-     * @return \Packetery\SDK\PrimitiveTypeWrapper\IntVal
+     * @return int
      */
     public function getLimit()
     {
@@ -60,23 +55,24 @@ class CarrierFilter
 
     public function setLimit($limit = null)
     {
-        $this->limit = IntVal::parse($limit);
+        $this->limit = $limit;
     }
 
     /**
-     * @return StringCollection|null
+     * @return array|null
      */
     public function getIds()
     {
         return $this->ids;
     }
 
-    public function setIds(StringCollection $ids = null)
+    public function setIds(array $ids = null)
     {
         $this->ids = $ids;
     }
 
     /** Returns API compatible assoc array for query building
+     *
      * @return array
      */
     public function getApiParams()
@@ -91,6 +87,6 @@ class CarrierFilter
 
     public function createApiHash()
     {
-        return new StringVal(md5(serialize($this->getApiParams())));
+        return (md5(serialize($this->getApiParams())));
     }
 }

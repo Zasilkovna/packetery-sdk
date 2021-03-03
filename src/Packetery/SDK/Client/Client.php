@@ -1,23 +1,18 @@
 <?php
 
-namespace Packetery\SDK;
+namespace Packetery\SDK\Client;
 
 use Packetery\SDK\Feed\CarrierFilter;
-use Packetery\SDK\PrimitiveTypeWrapper\BoolVal;
-use Packetery\SDK\PrimitiveTypeWrapper\StringVal;
 
-/**
- * todo rename FeedClient
- */
 class Client
 {
-    /** @var StringVal */
+    /** @var string */
     private $baseUrl;
 
-    /** @var StringVal */
+    /** @var string */
     private $version;
 
-    /** @var StringVal */
+    /** @var string */
     private $apiKey;
 
     /**
@@ -25,7 +20,7 @@ class Client
      * @param string $version
      * @param string $apiKey
      */
-    public function __construct(StringVal $baseUrl, StringVal $version, StringVal $apiKey)
+    public function __construct($baseUrl, $version, $apiKey)
     {
         $this->baseUrl = $baseUrl;
         $this->version = $version;
@@ -33,12 +28,11 @@ class Client
     }
 
     /**
-     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
-     * @return \Packetery\SDK\CallResult
+     * @return \Packetery\SDK\Client\CallResult
      */
-    public function getSimpleCarriers(CarrierFilter $branchFilter = null)
+    public function getSimpleCarriers()
     {
-        $params = $branchFilter ? $branchFilter->getApiParams() : [];
+        $params = [];
         $params['address-delivery'] = '1'; // nevykreslí branches a do carriers dá De Hermes HD i DE Hermes PP bez seznamu pickup pointů
 
         $url = $this->createUrl('branch.json', $params);
@@ -46,12 +40,12 @@ class Client
         $content = $this->get($url);
 
         return new CallResult(
-            new BoolVal($content === false ? false : true),
-            StringVal::createOrNull($content)
+            $content === false ? false : true,
+            $content
         );
     }
 
-    private function get(StringVal $url)
+    private function get($url)
     {
         $ctx = stream_context_create(
             [
@@ -81,12 +75,7 @@ class Client
     private function createUrl($endpoint, array $params)
     {
         $query = http_build_query($params);
-        $url = $this->baseUrl
-            ->append('/')->append($this->version)->append('/')
-            ->append($this->apiKey)->append('/')->append($endpoint)
-            ->append('?')->append($query)
-        ;
-
+        $url = "{$this->baseUrl}/{$this->version}/{$this->apiKey}/{$endpoint}?{$query}";
         return $url;
     }
 }
