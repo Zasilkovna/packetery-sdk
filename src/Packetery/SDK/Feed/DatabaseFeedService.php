@@ -10,7 +10,7 @@ class DatabaseFeedService implements IFeedService
     private $connection;
 
     /** @var \Packetery\SDK\Feed\DatabaseRepository */
-    public $repository;
+    private $repository;
 
     /** @var \Packetery\SDK\Feed\FeedServiceBrain */
     private $feedServiceBrain;
@@ -27,23 +27,23 @@ class DatabaseFeedService implements IFeedService
      */
     public function updateData()
     {
-        $generator = $this->feedServiceBrain->getSimpleCarrierGenerator(); // going to start new download
-        foreach ($generator as $SimpleCarrier) {
-            $this->connection->transactional(
-                function () use ($SimpleCarrier) {
+        $this->connection->transactional(
+            function () {
+                $this->repository->markAllInFeed(false);
+                $generator = $this->feedServiceBrain->getSimpleCarrierGenerator(); // going to start new download
+                foreach ($generator as $SimpleCarrier) {
                     $filter = new CarrierFilter();
-                    $filter->setIds(([$SimpleCarrier->getId()]));
+                    $filter->setIds([$SimpleCarrier->getId()]);
                     $result = $this->repository->findCarriers($filter);
 
-                    // todo multi insert?
                     if (!$result->isEmpty()) {
                         $this->repository->updateCarrier($SimpleCarrier);
                     } else {
                         $this->repository->insertCarrier($SimpleCarrier);
                     }
                 }
-            );
-        }
+            }
+        );
     }
 
     /**
@@ -85,7 +85,7 @@ class DatabaseFeedService implements IFeedService
         return $this->getSimpleCarriers($branchFilter);
     }
 
-    public function getHomeDeliveryCarriers(CarrierFilter $branchFilter = null)
+    public function getAddressDeliveryCarriers(CarrierFilter $branchFilter = null)
     {
         $branchFilter = $branchFilter ?: new CarrierFilter();
 
@@ -101,24 +101,13 @@ class DatabaseFeedService implements IFeedService
      * @return \Packetery\SDK\Feed\SimpleCarrierIterator
      * @throws \Exception
      */
-    public function getHomeDeliveryCarriersByCountry($country)
+    public function getAddressDeliveryCarriersByCountry($country)
     {
         $branchFilter = new CarrierFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setPickupPoints(false);
         $sample->setCountry($country);
-        $branchFilter->setSimpleCarrierSample($sample);
-
-        return $this->getSimpleCarriers($branchFilter);
-    }
-
-    public function getPickupPointCarriers(CarrierFilter $branchFilter = null)
-    {
-        $branchFilter = $branchFilter ?: new CarrierFilter();
-
-        $sample = $branchFilter->getSimpleCarrierSample() ?: new SimpleCarrierSample();
-        $sample->setPickupPoints(true);
         $branchFilter->setSimpleCarrierSample($sample);
 
         return $this->getSimpleCarriers($branchFilter);

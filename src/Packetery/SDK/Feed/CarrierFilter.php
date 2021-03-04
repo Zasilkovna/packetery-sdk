@@ -45,6 +45,30 @@ class CarrierFilter
         $this->simpleCarrierSample = $simpleCarrierSample;
     }
 
+    /** null means that you do not care
+     * @param string $country
+     * @param bool $addressDeliveryOnly Only select carriers for home delivery?
+     * @param bool $inFeedOnly Was carrier in packetery feed last time
+     */
+    public function buildSample($country, $addressDeliveryOnly, $inFeedOnly)
+    {
+        $sample = new SimpleCarrierSample();
+
+        if (is_string($country)) {
+            $sample->setCountry($country);
+        }
+
+        if (is_bool($addressDeliveryOnly)) {
+            $sample->setPickupPoints($addressDeliveryOnly);
+        }
+
+        if (is_bool($inFeedOnly)) {
+            $sample->setInFeed($inFeedOnly);
+        }
+
+        $this->simpleCarrierSample = $sample;
+    }
+
     /**
      * @return int
      */

@@ -4,7 +4,7 @@ namespace Packetery\SDK;
 
 use Packetery\Domain\InvalidArgumentException;
 
-abstract class Collection implements \JsonSerializable, \IteratorAggregate
+abstract class Collection implements \JsonSerializable, \IteratorAggregate, \Countable
 {
 
     /**

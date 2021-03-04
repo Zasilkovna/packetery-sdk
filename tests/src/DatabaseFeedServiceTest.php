@@ -5,12 +5,13 @@ namespace Packetery\Tests;
 require __DIR__ . '/../autoload.php';
 
 use Mockery;
+use Packetery\Domain\InvalidArgumentException;
 use Packetery\SDK\Client\CallResult;
 use Packetery\SDK\Client\Client;
 use Packetery\SDK\Config;
 use Packetery\SDK\Container;
+use Packetery\SDK\Database\ArrayDriverResult;
 use Packetery\SDK\Database\Connection;
-use Packetery\SDK\Database\IDriver;
 use Packetery\SDK\Database\Result;
 use Packetery\SDK\Feed\CarrierFilter;
 use Packetery\SDK\Feed\DatabaseFeedService;
@@ -18,6 +19,7 @@ use Packetery\SDK\Feed\DatabaseRepository;
 use Packetery\SDK\Feed\FeedServiceBrain;
 use Packetery\SDK\Feed\SimpleCarrier;
 use Packetery\SDK\Feed\SimpleCarrierIterator;
+use Packetery\Utils\Arrays;
 use Packetery\Utils\Json;
 
 class DatabaseFeedServiceTest extends BaseTest
@@ -37,11 +39,23 @@ class DatabaseFeedServiceTest extends BaseTest
                 'id' => 13,
                 'name' => 'česká pošta',
                 'country' => 'cz',
+                'in_feed' => null,
             ]
         ];
 
+        Arrays::getValue($data[0], ['in_feed']); // must not throw
+        $value = Arrays::getValue($data[0], ['in_feed'], null);
+        $this->assertNull($value);
+
+        $value = Arrays::getValue($data[0], ['xxxxxxxxx'], null);
+        $this->assertNull($value);
+
+        $this->assertException(InvalidArgumentException::class, function () use ($data) {
+            Arrays::getValue($data[0], [' in_feed']); // notice space
+        }, 'Arrays::getValue doesnt work');
+
         $iterator = new SimpleCarrierIterator(
-            new \ArrayIterator($data)
+            new ArrayDriverResult($data)
         );
 
         $array = iterator_to_array($iterator);
@@ -51,6 +65,7 @@ class DatabaseFeedServiceTest extends BaseTest
         $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier must be SimpleCarrier');
 
         $this->assertTrue(!empty($iterator), 'iterator must not be empty');
+//        $this->assertTrue(count($iterator) === 1, 'iterator counting not working');
 
         $count = 0;
         foreach ($iterator as $car) {
@@ -92,39 +107,31 @@ class DatabaseFeedServiceTest extends BaseTest
 
         $brain = new FeedServiceBrain($client, $fileStorage);
 
-        $resultDriver = Mockery::mock(IDriver::class);
-        $resultDriver->shouldReceive('getIterator')->andReturn(
-            new \ArrayIterator(
+        $result = new ArrayDriverResult(
+            [
                 [
-                    [
-                        'id' => 13,
-                        'name' => 'česká pošta',
-                        'pickupPoints' => 'false',
-                        'apiAllowed' => true,
-                        'customsDeclarations' => true,
-                        'requiresEmail' => true,
-                        'requiresPhone' => true,
-                        'requiresSize' => true,
-                        'separateHouseNumber' => false,
-                        'disallowsCod' => true,
-                        'country' => 'cz',
-                        'currency' => 'CZK',
-                        'maxWeight' => '15',
-                        'labelRouting' => 'A--0--000',
-                        'labelName' => 'Carrier 1',
-                    ]
+                    'carrier_id' => 13,
+                    'name' => 'česká pošta',
+                    'pickupPoints' => 'false',
+                    'apiAllowed' => true,
+                    'customsDeclarations' => true,
+                    'requiresEmail' => true,
+                    'requiresPhone' => 1,
+                    'requiresSize' => true,
+                    'separateHouseNumber' => false,
+                    'disallowsCod' => true,
+                    'country' => 'cz',
+                    'currency' => 'CZK',
+                    'maxWeight' => '15',
+                    'labelRouting' => 'A--0--000',
+                    'labelName' => 'Carrier 1',
+                    'in_feed' => 1,
                 ]
-            )
+            ]
         );
 
-        $resultDriver->shouldReceive('fetch')->times(0);
-        $resultDriver->shouldReceive('query')->times(0);
-        $resultDriver->shouldReceive('begin')->andReturn(null);
-        $resultDriver->shouldReceive('commit')->andReturn(null);
-        $resultDriver->shouldReceive('rollback')->andReturn(null);
-
         $repository = Mockery::mock(DatabaseRepository::class);
-        $repository->shouldReceive('findCarriers')->andReturn(new Result($resultDriver));
+        $repository->shouldReceive('findCarriers')->andReturn(new Result($result));
         $repository->shouldReceive('insertCarrier')->andReturn(null);
         $repository->shouldReceive('updateCarrier')->times(0)->andReturn(null);
 
@@ -162,22 +169,14 @@ class DatabaseFeedServiceTest extends BaseTest
 
         $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
 
-        $carrierIterator = $service->getHomeDeliveryCarriers();
+        $carrierIterator = $service->getAddressDeliveryCarriers();
         $carrier = $carrierIterator->first();
 
         $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
 
-        $carrierIterator = $service->getHomeDeliveryCarriersByCountry('cz');
+        $carrierIterator = $service->getAddressDeliveryCarriersByCountry('cz');
         $carrier = $carrierIterator->first();
 
-        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
-
-        $carrierIterator = $service->getPickupPointCarriers();
-        $carrier = $carrierIterator->first();
-
-        $this->assertNotEmpty($carrier->getId(), 'carrier id is empty');
-        $this->assertNotEmpty($carrier->getName(), 'carrier name is empty');
-        $this->assertNotEmpty($carrier->getCountry(), 'carrier id is empty');
         $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
 
         $carrierById = $service->getSimpleCarrierById($carrier->getId());

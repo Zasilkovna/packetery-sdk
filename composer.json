@@ -2,11 +2,14 @@
     "name": "packetery/sdk",
     "config": {
         "platform": {
-            "php": ">=5.6"
+            "php": "5.6"
         }
     },
     "require-dev": {
         "phpunit/phpunit": "^5",
         "mockery/mockery": "^1.3"
+    },
+    "require": {
+        "dibi/dibi": "^3.2"
     }
 }

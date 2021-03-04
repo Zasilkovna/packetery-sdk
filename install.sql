@@ -1,5 +1,5 @@
-CREATE TABLE `packetery_carriers` (
-	`carrier_id` INT(11) NOT NULL,
+CREATE TABLE `zasilkovna_packetery_carriers` (
+	`carrier_id` VARCHAR(50) NOT NULL COLLATE 'utf8_general_ci',
 	`name` VARCHAR(255) NOT NULL COLLATE 'utf8_general_ci',
 	`country` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`currency` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
@@ -14,6 +14,7 @@ CREATE TABLE `packetery_carriers` (
 	`requiresEmail` SMALLINT(1) NULL DEFAULT NULL,
 	`requiresSize` SMALLINT(1) NULL DEFAULT NULL,
 	`apiAllowed` SMALLINT(1) NULL DEFAULT NULL,
+	`in_feed` SMALLINT(1) NULL DEFAULT NULL,
 	PRIMARY KEY (`carrier_id`) USING BTREE
 )
 	COLLATE='utf8_general_ci'

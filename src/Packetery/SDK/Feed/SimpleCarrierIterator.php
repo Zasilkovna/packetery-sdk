@@ -2,12 +2,14 @@
 
 namespace Packetery\SDK\Feed;
 
-class SimpleCarrierIterator implements \IteratorAggregate
+use Packetery\SDK\Database\IDriverResult;
+
+class SimpleCarrierIterator implements \IteratorAggregate, \Countable
 {
-    /** @var \Iterator */
+    /** @var IDriverResult */
     private $iterable;
 
-    public function __construct(\Iterator $iterable)
+    public function __construct(IDriverResult $iterable)
     {
         $this->iterable = $iterable;
     }
@@ -38,11 +40,21 @@ class SimpleCarrierIterator implements \IteratorAggregate
     }
 
     /**
-     * @return \Packetery\SDK\Feed\SimpleCarrier
+     * @return \Packetery\SDK\Feed\SimpleCarrier|null
      */
     public function first()
     {
         $iterable = $this->getGenerator();
-        return $iterable->current();
+        return $iterable ? $iterable->current() : null;
+    }
+
+    public function isEmpty()
+    {
+        return $this->iterable->count() == 0;
+    }
+
+    public function count()
+    {
+        return $this->iterable->count();
     }
 }

@@ -4,6 +4,7 @@ namespace Packetery\Tests;
 
 use Mockery;
 use Packetery\Domain\InvalidArgumentException;
+use Packetery\Domain\InvalidStateException;
 use Packetery\SDK\Feed\ApiFeedService;
 use Packetery\SDK\Feed\CarrierFilter;
 use Packetery\SDK\Feed\FeedServiceBrain;
@@ -20,7 +21,7 @@ class ApiFeedServiceTest extends BaseTest
         $brain = new FeedServiceBrain($testContainer->getClient(), $this->createCacheFileStorage());
         $service = new ApiFeedService($brain);
 
-        $carriers = $service->getHomeDeliveryCarriersByCountry('cz');
+        $carriers = $service->getAddressDeliveryCarriersByCountry('cz');
         $this->assertNotEmpty($carriers, 'is empty');
         $this->assertTrue($carriers->count() > 0, 'count is 0');
         $carrier = $carriers->first();
@@ -91,6 +92,8 @@ class ApiFeedServiceTest extends BaseTest
         $filter->setSimpleCarrierSample($sample);
         $result = $service->getSimpleCarriers($filter);
         $this->assertCount(2, $result);
+        $this->assertEquals(2, count($result));
+        $this->assertEquals(2, $result->count());
 
         $filter = new CarrierFilter();
 
@@ -106,7 +109,7 @@ class ApiFeedServiceTest extends BaseTest
     public function testDeniedSampleMethods()
     {
         $this->assertException(
-            InvalidArgumentException::class,
+            InvalidStateException::class,
             function () {
                 $sample = new SimpleCarrierSample();
                 $sample->setName('czpost');

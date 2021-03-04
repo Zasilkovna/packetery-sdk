@@ -27,17 +27,11 @@ interface IFeedService
      * @param string $country
      * @return \Traversable
      */
-    public function getHomeDeliveryCarriers(CarrierFilter $branchFilter = null);
+    public function getAddressDeliveryCarriers(CarrierFilter $branchFilter = null);
 
     /**
      * @param string $country
      * @return \Traversable
      */
-    public function getHomeDeliveryCarriersByCountry($country);
-
-    /**
-     * @param string $country
-     * @return \Traversable
-     */
-    public function getPickupPointCarriers(CarrierFilter $branchFilter = null);
+    public function getAddressDeliveryCarriersByCountry($country);
 }

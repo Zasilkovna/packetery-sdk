@@ -2,6 +2,9 @@
 
 namespace Packetery\SDK\Feed;
 
+use Packetery\SDK\Cache;
+use Packetery\SDK\Storage\FileStorage;
+
 class ApiFeedService implements IFeedService
 {
     /** @var \Packetery\SDK\Feed\FeedServiceBrain */
@@ -101,7 +104,7 @@ class ApiFeedService implements IFeedService
      * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
      * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Traversable|\Packetery\SDK\Feed\SimpleCarrier[]
      */
-    public function getHomeDeliveryCarriers(CarrierFilter $branchFilter = null)
+    public function getAddressDeliveryCarriers(CarrierFilter $branchFilter = null)
     {
         $filter = $branchFilter ?: new CarrierFilter();
 
@@ -116,28 +119,13 @@ class ApiFeedService implements IFeedService
      * @param string $country
      * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Traversable|\Packetery\SDK\Feed\SimpleCarrier[]
      */
-    public function getHomeDeliveryCarriersByCountry($country)
+    public function getAddressDeliveryCarriersByCountry($country)
     {
         $filter = new CarrierFilter();
 
         $sample = new SimpleCarrierSample();
         $sample->setPickupPoints(false);
         $sample->setCountry($country);
-
-        $filter->setSimpleCarrierSample($sample);
-        return $this->getSimpleCarriers($filter);
-    }
-
-    /**
-     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
-     * @return \Packetery\SDK\Feed\SimpleCarrierCollection|\Traversable|\Packetery\SDK\Feed\SimpleCarrier[]
-     */
-    public function getPickupPointCarriers(CarrierFilter $branchFilter = null)
-    {
-        $filter = $branchFilter ?: new CarrierFilter();
-
-        $sample = $branchFilter->getSimpleCarrierSample() ?: new SimpleCarrierSample();
-        $sample->setPickupPoints(true);
 
         $filter->setSimpleCarrierSample($sample);
         return $this->getSimpleCarriers($filter);

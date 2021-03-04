@@ -41,7 +41,7 @@ class Connection
      */
     public function query($sql)
     {
-        return new Result($this->getDriver()->query((string)$sql));
+        return new Result($this->getDriver()->query((string)$sql) ?: new ArrayDriverResult([]));
     }
 
     public function escapeStringCollection(array $input)
@@ -56,13 +56,27 @@ class Connection
         return $remapped;
     }
 
-    public function escapeText($input)
+    public function escapeText($input, $returnNullString = true)
     {
+        if ($returnNullString && $input === null) {
+            return 'null';
+        }
+
         return $this->getDriver()->escapeText((string)$input);
+    }
+
+    public function escapeBool($input, $returnNullString = true)
+    {
+        if ($returnNullString && $input === null) {
+            return 'null';
+        }
+
+        return $this->getDriver()->escapeBool((string)$input);
     }
 
     public function transactional(callable $callback)
     {
+        // todo will it work for random drivers?
         $transaction = new Transaction($this->getDriver());
 
         try {
@@ -71,6 +85,13 @@ class Connection
         } catch (Exception $exception) {
             $transaction->rollback();
             throw $exception;
+        }
+    }
+
+    public function __destruct()
+    {
+        if ($this->connected) {
+            $this->getDriver()->disconnect();
         }
     }
 }
