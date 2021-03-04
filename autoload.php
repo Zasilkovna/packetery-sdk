@@ -17,3 +17,8 @@ if (!defined('PACKETERY_SDK_VERSION')) {
         }
     );
 }
+
+require_once __DIR__ . '/src/PacketeryDibi/dibi.php';
+require_once __DIR__ . '/src/PacketeryDibi/exceptions.php';
+require_once __DIR__ . '/src/PacketeryDibi/interfaces.php';
+require_once __DIR__ . '/src/PacketeryDibi/HashMap.php';
