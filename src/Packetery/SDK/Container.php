@@ -40,10 +40,8 @@ class Container
         $config = new Config($configuration);
 
         if ($randomDriver !== null) {
-            if ($randomDriver instanceof mysqli) {
-                throw new InvalidArgumentException('\mysqli wrapper not implemented');
-            } elseif ($randomDriver instanceof PDO) {
-                throw new InvalidArgumentException('\PDO wrapper not implemented');
+            if ($randomDriver instanceof IDriver) {
+                $driver = $randomDriver;
             } else {
                 throw new InvalidArgumentException('wrapper not implemented for given driver');
             }

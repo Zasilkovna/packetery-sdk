@@ -5,13 +5,7 @@ namespace Packetery\SDK\Database;
 class MysqliDriver implements IDriver
 {
     /** @var \mysqli */
-    private $connection;
-
-    /** @var \mysqli_result */
-    private $resultSet;
-
-    /** @var int|null */
-    private $resultPointer = null;
+    protected $connection;
 
     public function query($sql)
     {
@@ -22,14 +16,11 @@ class MysqliDriver implements IDriver
             throw new DriverException($error . "\n" . $sql);
         }
 
-        $resultDriver = clone $this;
-        $resultDriver->resultSet = $result;
-        return $resultDriver;
-    }
+        if ($result === false) {
+            throw new DriverException('Unknown error. Warnings: ' . mysqli_get_warnings($this->connection)->message);
+        }
 
-    public function getRowCount()
-    {
-        return mysqli_affected_rows($this->connection);
+        return $result instanceof \mysqli_result ? new MysqliResult($result) : null;
     }
 
     public function connect(array $config)
@@ -51,6 +42,11 @@ class MysqliDriver implements IDriver
     public function escapeText($input)
     {
         return "'" . mysqli_real_escape_string($this->connection, $input) . "'";
+    }
+
+    public function escapeBool($input)
+    {
+        return $input ? 1 : 0;
     }
 
     /**
@@ -90,64 +86,6 @@ class MysqliDriver implements IDriver
     public function rollback($savepoint = null)
     {
         $this->query($savepoint ? "ROLLBACK TO SAVEPOINT $savepoint" : 'ROLLBACK');
-    }
-
-    /**
-     * Frees the resources allocated for this result set.
-     * @return void
-     */
-    public function free()
-    {
-        if ($this->resultSet instanceof \mysqli_result) {
-            mysqli_free_result($this->resultSet);
-        }
-
-        $this->resultSet = null;
-    }
-
-    public function getIterator()
-    {
-        return $this->resultSet ? $this : new \ArrayIterator([]);
-    }
-
-    public function current()
-    {
-        if ($this->resultPointer === null) {
-            $this->next();
-        }
-
-        return $this->resultSet->fetch_assoc();
-    }
-
-    public function next()
-    {
-        if ($this->resultPointer === null) {
-            $this->resultPointer = 0;
-        } else {
-            $this->resultPointer++;
-        }
-
-        $this->resultSet->data_seek($this->resultPointer);
-    }
-
-    public function key()
-    {
-        return $this->resultPointer;
-    }
-
-    public function valid()
-    {
-        return $this->resultPointer === null || $this->resultSet->num_rows > $this->resultPointer;
-    }
-
-    public function rewind()
-    {
-        $this->resultSet->data_seek(0);
-    }
-
-    public function count()
-    {
-        return $this->resultSet->num_rows;
     }
 
     public function isConnected()

@@ -18,10 +18,14 @@ abstract class BaseTest extends TestCase
     /** @var \Packetery\SDK\Config */
     protected $config;
 
+    /** @var Container */
+    protected $container;
+
     protected function setUp()
     {
         parent::setUp();
         $this->config = new Config(require __DIR__ . '/config.php');
+        $this->container = $this->createContainer();
     }
 
     protected function tearDown()

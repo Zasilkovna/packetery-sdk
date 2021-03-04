@@ -2,10 +2,10 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\Domain\InvalidArgumentException;
+use Packetery\Domain\InvalidStateException;
 
 /**
- * Sample for BranchFilter
+ * Sample for CarrierFilter
  */
 class SimpleCarrierSample extends SimpleCarrier
 {
@@ -14,138 +14,197 @@ class SimpleCarrierSample extends SimpleCarrier
     }
 
     /**
+     * @internal
      * @return string|null
      */
     public function getId()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
     public function setId($id = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
     /**
+     * @internal
      * @return string|null
      */
     public function getName()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setName($name = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function isApiAllowed()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setApiAllowed($apiAllowed = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
     public function isSeparateHouseNumber()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setSeparateHouseNumber($separateHouseNumber = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
     public function isCustomsDeclarations()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setCustomsDeclarations($customsDeclarations = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
     public function isRequiresEmail()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setRequiresEmail($requiresEmail = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function isRequiresPhone()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setRequiresPhone($requiresPhone = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function isRequiresSize()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setRequiresSize($requiresSize = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function isDisallowsCod()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setDisallowsCod($disallowsCod = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function getCurrency()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setCurrency($currency = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function getMaxWeight()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setMaxWeight($maxWeight = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function getLabelRouting()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
     public function setLabelRouting($labelRouting = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function getLabelName()
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 
+    /**
+     * @internal
+     */
     public function setLabelName($labelName = null)
     {
-        throw new InvalidArgumentException('not implemented');
+        throw new InvalidStateException('not implemented');
     }
 }

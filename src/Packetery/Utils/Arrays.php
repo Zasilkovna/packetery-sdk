@@ -19,7 +19,7 @@ class Arrays
         $any = false;
 
         foreach ($keys as $key) {
-            if (is_array($value) && isset($value[$key])) {
+            if (is_array($value) && array_key_exists($key, $value)) {
                 $value = $arr[$key];
                 $any = true;
             } else {

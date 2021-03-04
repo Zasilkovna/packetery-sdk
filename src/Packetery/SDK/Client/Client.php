@@ -41,7 +41,7 @@ class Client
 
         return new CallResult(
             $content === false ? false : true,
-            $content
+            $content ?: null
         );
     }
 

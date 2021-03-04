@@ -23,4 +23,12 @@ class CallResult
     {
         return $this->responseBody;
     }
+
+    /**
+     * @return bool
+     */
+    public function isSuccess()
+    {
+        return $this->success;
+    }
 }

@@ -2,23 +2,30 @@
 
 namespace Packetery\SDK\Database;
 
-class Result implements \IteratorAggregate
-{
-    /** @var \Packetery\SDK\Database\IDriver */
-    private $resultDriver;
+use Packetery\Domain\InvalidArgumentException;
 
-    public function __construct(IDriver $driver)
+class Result implements \IteratorAggregate, \Countable
+{
+    /** @var IDriverResult */
+    private $result;
+
+    public function __construct(IDriverResult $result)
     {
-        $this->resultDriver = $driver;
+        $this->result = $result;
     }
 
     public function isEmpty()
     {
-        return empty($this->resultDriver->getIterator());
+        return $this->count() === 0;
     }
 
     public function getIterator()
     {
-        return $this->resultDriver->getIterator();
+        return $this->result;
+    }
+
+    public function count()
+    {
+        return $this->result->count();
     }
 }

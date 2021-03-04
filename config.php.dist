@@ -1,8 +1,9 @@
 <?php
 
+// rename file to config.php
+
 return [
     'parameters' => [
-        'tablePrefix' => 'zasilkovna_',
         'tempFolder' => __DIR__ . '/../temp',
         'apiKey' => 'asksksjsjsjsjsjieiesksprieueuiow', // see client.packeta.com
         'apiBaseUrl' => 'http://www.zasilkovna.cz/api',
@@ -14,6 +15,7 @@ return [
             'charset' => 'utf8',
 			'user' => 'user',
 			'password' => 'jsaoioijewoijsareiudsoieoispqqqq',
-		]
+		],
+        'tablePrefix' => '' // please leave empty if possible
     ]
 ];

@@ -25,19 +25,19 @@ class DatabaseRepository
     public function findCarriers(CarrierFilter $branchFilter = null)
     {
         $limit = '';
-        $conditions = ['1'];
+        $andConditions = ['1'];
 
         if ($branchFilter) {
             if (!empty($branchFilter->getIds())) {
                 $idCollection = $this->connection->escapeStringCollection($branchFilter->getIds());
                 $imploded = implode(',', $idCollection);
-                $conditions[] = "phdc.carrier_id IN ($imploded)";
+                $andConditions[] = "phdc.carrier_id IN ($imploded)";
             }
 
             if (!empty($branchFilter->getExcludedIds())) {
                 $idCollection = $this->connection->escapeStringCollection($branchFilter->getExcludedIds());
                 $imploded = implode(',', $idCollection);
-                $conditions[] = "phdc.carrier_id NOT IN ($imploded)";
+                $andConditions[] = "phdc.carrier_id NOT IN ($imploded)";
             }
 
             $simpleCarrierSample = $branchFilter->getSimpleCarrierSample();
@@ -45,37 +45,39 @@ class DatabaseRepository
             if ($simpleCarrierSample) {
                 if ($simpleCarrierSample->getCountry()) {
                     $country = $this->connection->escapeText($simpleCarrierSample->getCountry());
-                    $conditions[] = "phdc.country = $country";
+                    $andConditions[] = "phdc.country = $country";
                 }
 
                 if ($simpleCarrierSample->isPickupPoints() === false) {
-                    $conditions[] = 'phdc.pickupPoints = 0';
+                    $andConditions[] = 'phdc.pickupPoints = 0';
                 } else if ($simpleCarrierSample->isPickupPoints() === true) {
-                    $conditions[] = 'phdc.pickupPoints = 1';
+                    $andConditions[] = 'phdc.pickupPoints = 1';
+                }
+
+                if ($simpleCarrierSample->isInFeed() === true) {
+                    $andConditions[] = 'phdc.in_feed = 1';
+                } else if ($simpleCarrierSample->isInFeed() === false) {
+                    $andConditions[] = 'phdc.in_feed = 0';
                 }
             }
 
-            if ($branchFilter->getLimit() && $branchFilter->getLimit() > 0) {
-                $limitValue = $branchFilter->getLimit();
-                $limit = " LIMIT $limitValue";
+            if ($branchFilter->getLimit() !== null) {
+                if ($branchFilter->getLimit() > 0) {
+                    $limitValue = $branchFilter->getLimit();
+                    $limit = " LIMIT $limitValue";
+                } else {
+                    $andConditions[] = '0';
+                }
             }
+
         }
 
-        $implodedWhere = implode(' AND ', $conditions);
-        $sql = "SELECT phdc.* FROM `{$this->dbPrefix}packetery_carriers` phdc WHERE $implodedWhere $limit"; // todo fix cache memory issue about unexported branch
+        $implodedWhere = implode(' AND ', $andConditions);
+        $sql = "SELECT phdc.* FROM `{$this->dbPrefix}packetery_carriers` phdc WHERE $implodedWhere $limit";
         return $this->connection->query($sql);
     }
 
-    /**
-     * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
-     * @return \Packetery\SDK\Database\Result
-     */
-    public function findSimpleCarrier(CarrierFilter $branchFilter = null)
-    {
-        return $this->findCarriers($branchFilter);
-    }
-
-    public function insertCarrier(SimpleCarrier $SimpleCarrier)
+    public function insertCarrier(SimpleCarrier $simpleCarrier)
     {
         $sql = "
             INSERT INTO `{$this->dbPrefix}packetery_carriers` (
@@ -95,26 +97,28 @@ class DatabaseRepository
                                                    `currency`, 
                                                    `maxWeight`, 
                                                    `labelRouting`, 
-                                                   `labelName`
+                                                   `labelName`,
+                                                   `in_feed`
                                                    )
             VALUES (
-                    {$this->connection->escapeText($SimpleCarrier->getId())}, 
-                    {$this->connection->escapeText($SimpleCarrier->getName())}, 
+                    {$this->connection->escapeText($simpleCarrier->getId())}, 
+                    {$this->connection->escapeText($simpleCarrier->getName())}, 
                     
-                    {$this->connection->escapeText($SimpleCarrier->isPickupPoints())}, 
-                    {$this->connection->escapeText($SimpleCarrier->isSeparateHouseNumber())}, 
-                    {$this->connection->escapeText($SimpleCarrier->isCustomsDeclarations())}, 
-                    {$this->connection->escapeText($SimpleCarrier->isDisallowsCod())}, 
-                    {$this->connection->escapeText($SimpleCarrier->isRequiresPhone())}, 
-                    {$this->connection->escapeText($SimpleCarrier->isRequiresEmail())}, 
-                    {$this->connection->escapeText($SimpleCarrier->isRequiresSize())}, 
-                    {$this->connection->escapeText($SimpleCarrier->isApiAllowed())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isPickupPoints())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isSeparateHouseNumber())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isCustomsDeclarations())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isDisallowsCod())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isRequiresPhone())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isRequiresEmail())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isRequiresSize())}, 
+                    {$this->connection->escapeBool($simpleCarrier->isApiAllowed())}, 
                     
-                    {$this->connection->escapeText($SimpleCarrier->getCountry())},
-                    {$this->connection->escapeText($SimpleCarrier->getCurrency())},
-                    {$this->connection->escapeText($SimpleCarrier->getMaxWeight())},
-                    {$this->connection->escapeText($SimpleCarrier->getLabelRouting())},
-                    {$this->connection->escapeText($SimpleCarrier->getLabelName())}
+                    {$this->connection->escapeText($simpleCarrier->getCountry())},
+                    {$this->connection->escapeText($simpleCarrier->getCurrency())},
+                    {$this->connection->escapeText($simpleCarrier->getMaxWeight())},
+                    {$this->connection->escapeText($simpleCarrier->getLabelRouting())},
+                    {$this->connection->escapeText($simpleCarrier->getLabelName())},
+                    {$this->connection->escapeBool($simpleCarrier->isInFeed())}
                     )
         ";
 
@@ -126,24 +130,38 @@ class DatabaseRepository
         $sql = "
             UPDATE `{$this->dbPrefix}packetery_carriers` 
             SET 
-                `carrier_id`={$this->connection->escapeText($SimpleCarrier->getId())}, 
                 `name`={$this->connection->escapeText($SimpleCarrier->getName())}, 
                 
-                `pickupPoints`={$this->connection->escapeText($SimpleCarrier->isPickupPoints())},
-                `separateHouseNumber`={$this->connection->escapeText($SimpleCarrier->isSeparateHouseNumber())},
-                `customsDeclarations`={$this->connection->escapeText($SimpleCarrier->isCustomsDeclarations())},
-                `disallowsCod`={$this->connection->escapeText($SimpleCarrier->isDisallowsCod())},
-                `requiresPhone`={$this->connection->escapeText($SimpleCarrier->isRequiresPhone())},
-                `requiresEmail`={$this->connection->escapeText($SimpleCarrier->isRequiresEmail())},
-                `requiresSize`={$this->connection->escapeText($SimpleCarrier->isRequiresSize())},
-                `apiAllowed`={$this->connection->escapeText($SimpleCarrier->isApiAllowed())},
+                `pickupPoints`={$this->connection->escapeBool($SimpleCarrier->isPickupPoints())},
+                `separateHouseNumber`={$this->connection->escapeBool($SimpleCarrier->isSeparateHouseNumber())},
+                `customsDeclarations`={$this->connection->escapeBool($SimpleCarrier->isCustomsDeclarations())},
+                `disallowsCod`={$this->connection->escapeBool($SimpleCarrier->isDisallowsCod())},
+                `requiresPhone`={$this->connection->escapeBool($SimpleCarrier->isRequiresPhone())},
+                `requiresEmail`={$this->connection->escapeBool($SimpleCarrier->isRequiresEmail())},
+                `requiresSize`={$this->connection->escapeBool($SimpleCarrier->isRequiresSize())},
+                `apiAllowed`={$this->connection->escapeBool($SimpleCarrier->isApiAllowed())},
                 
                 `country`={$this->connection->escapeText($SimpleCarrier->getCountry())},
                 `currency`={$this->connection->escapeText($SimpleCarrier->getCurrency())},
                 `maxWeight`={$this->connection->escapeText($SimpleCarrier->getMaxWeight())},
                 `labelRouting`={$this->connection->escapeText($SimpleCarrier->getLabelRouting())},
-                `labelName`={$this->connection->escapeText($SimpleCarrier->getLabelName())}
+                `labelName`={$this->connection->escapeText($SimpleCarrier->getLabelName())},
+                `in_feed`={$this->connection->escapeBool($SimpleCarrier->isInFeed())}
             WHERE `carrier_id`={$this->connection->escapeText($SimpleCarrier->getId())}
+        ";
+        $this->connection->query($sql);
+    }
+
+    /** Only marks carrier that came from feed
+     * @param bool $inFeed
+     */
+    public function markAllInFeed($inFeed)
+    {
+        $sql = "
+            UPDATE `{$this->dbPrefix}packetery_carriers` 
+            SET 
+                `in_feed`={$this->connection->escapeBool($inFeed)}
+            WHERE `in_feed` IS NOT NULL
         ";
         $this->connection->query($sql);
     }

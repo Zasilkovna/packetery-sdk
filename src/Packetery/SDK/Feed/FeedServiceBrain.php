@@ -3,6 +3,7 @@
 namespace Packetery\SDK\Feed;
 
 use Packetery\SDK\Cache;
+use Packetery\SDK\Client\ClientException;
 use Packetery\SDK\Storage\IStorage;
 use Packetery\Utils\Arrays;
 use Packetery\Utils\Json;
@@ -26,16 +27,33 @@ class FeedServiceBrain
         $this->cache = new Cache($cacheStorage);
     }
 
+    /**
+     * @return string|null
+     * @throws \Packetery\SDK\Client\ClientException
+     */
     public function getSimpleCarrierExport()
     {
         $callResult = $this->client->getSimpleCarriers();
         return $callResult->getResponseBody();
     }
 
+    /**
+     * @return array|null
+     */
     public function getSimpleCarrierExportDecoded()
     {
-        $responseBody = $this->getSimpleCarrierExport();
-        return $this->decodeJsonContent($responseBody);
+        $responseBody = null;
+        try {
+            $responseBody = $this->cache->load('feedCache', function () {
+                return $this->getSimpleCarrierExport();
+            }, [
+                Cache::OPTION_EXPIRATION => 60
+            ]);
+
+        } catch (ClientException $exception) {
+        }
+
+        return $responseBody ? $this->decodeJsonContent($responseBody) : null;
     }
 
     /**
@@ -44,9 +62,11 @@ class FeedServiceBrain
     public function getSimpleCarrierGenerator()
     {
         $decoded = $this->getSimpleCarrierExportDecoded();
-        $carriers = Arrays::getValue($decoded, ['carriers'], []);
+        $carriers = Arrays::getValue($decoded ?: [], ['carriers'], []);
         foreach ($carriers as $key => $carrier) {
-            yield $key => SimpleCarrier::createFromFeedArray($carrier); // so it does not matter how many items there are
+            $instance = SimpleCarrier::createFromFeedArray($carrier);
+            $instance->setInFeed(true);
+            yield $key => $instance; // so it does not matter how many items there are
         }
     }
 
