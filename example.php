@@ -2,7 +2,8 @@
 
 require __DIR__ . '/autoload.php';
 
-$container = \Packetery\SDK\Container::create(require __DIR__ . '/config.php');
+//$container = \Packetery\SDK\Container::create(require __DIR__ . '/config.php');
+$container = \Packetery\SDK\Container::create(require __DIR__ . '/config.php', new \Packetery\SDK\Database\PdoDriver());
 $feedService = $container->getDatabaseFeedService();
 $feedService->updateData();
 

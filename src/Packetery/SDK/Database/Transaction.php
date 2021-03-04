@@ -22,8 +22,9 @@ class Transaction
         $this->name = 'T' . md5(microtime());
         if (self::$transaction_nest_level++ == 0) {
             $this->driver->begin();
+        } else {
+            $this->driver->begin($this->name);
         }
-        $this->driver->begin($this->name);
 
         $this->finished = false;
     }
@@ -37,9 +38,10 @@ class Transaction
 
     function commit()
     {
-        $this->driver->commit($this->name);
         if (--self::$transaction_nest_level == 0) {
             $this->driver->commit();
+        } else {
+            $this->driver->commit($this->name);
         }
 
         $this->finished = true;
@@ -47,9 +49,10 @@ class Transaction
 
     function rollback()
     {
-        $this->driver->rollback($this->name);
         if (--self::$transaction_nest_level == 0) {
             $this->driver->commit();
+        } else {
+            $this->driver->rollback($this->name);
         }
 
         $this->finished = true;

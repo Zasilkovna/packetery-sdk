@@ -1,12 +1,19 @@
 <?php
 
-namespace Packetery\SDK\Database;
+/**
+ * This file is part of the Dibi, smart database abstraction layer (https://dibiphp.com)
+ * Copyright (c) 2005 David Grudl (https://davidgrudl.com)
+ */
 
-use PDO;
+namespace PacketeryDibi\Drivers;
+
 use PacketeryDibi;
+use PDO;
 
 
 /**
+ * The driver for PDO.
+ *
  * Driver options:
  *   - dsn => driver specific DSN
  *   - username (or user)
@@ -14,24 +21,25 @@ use PacketeryDibi;
  *   - options (array) => driver specific options {@see PDO::__construct}
  *   - resource (PDO) => existing connection
  *   - version
- *   - lazy, profiler, result, substitutes, ... => see PacketeryDibi\Connection options
  */
-class PdoDriver implements IDriver, IDriverResult
+class PdoDriver implements PacketeryDibi\Driver, PacketeryDibi\ResultDriver
 {
-	/** @var PDO  Connection resource */
-	protected $connection;
+	use PacketeryDibi\Strict;
 
-	/** @var \PDOStatement  Resultset resource */
+	/** @var PDO|null  Connection resource */
+	private $connection;
+
+	/** @var \PDOStatement|null  Resultset resource */
 	private $resultSet;
 
-	/** @var int|FALSE  Affected rows */
-	private $affectedRows = FALSE;
+	/** @var int|false  Affected rows */
+	private $affectedRows = false;
 
 	/** @var string */
 	private $driverName;
 
 	/** @var string */
-	private $serverVersion;
+	private $serverVersion = '';
 
 
 	/**
@@ -50,11 +58,11 @@ class PdoDriver implements IDriver, IDriverResult
 	 * @return void
 	 * @throws PacketeryDibi\Exception
 	 */
-	public function connect(array $config)
+	public function connect(array &$config)
 	{
-		$foo = & $config['dsn'];
-		$foo = & $config['options'];
-		PacketeryDibi\Helpers::alias($config, 'resource', 'pdo');
+		$foo = &$config['dsn'];
+		$foo = &$config['options'];
+		Dibi\Helpers::alias($config, 'resource', 'pdo');
 
 		if ($config['resource'] instanceof PDO) {
 			$this->connection = $config['resource'];
@@ -70,6 +78,10 @@ class PdoDriver implements IDriver, IDriverResult
 			}
 		}
 
+		if ($this->connection->getAttribute(PDO::ATTR_ERRMODE) !== PDO::ERRMODE_SILENT) {
+			throw new PacketeryDibi\DriverException('PDO connection in exception or warning error mode is not supported.');
+		}
+
 		$this->driverName = $this->connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 		$this->serverVersion = isset($config['version'])
 			? $config['version']
@@ -83,59 +95,50 @@ class PdoDriver implements IDriver, IDriverResult
 	 */
 	public function disconnect()
 	{
-		$this->connection = NULL;
+		$this->connection = null;
 	}
 
 
 	/**
 	 * Executes the SQL query.
 	 * @param  string      SQL statement.
-	 * @return PacketeryDibi\ResultDriver|NULL
+	 * @return PacketeryDibi\ResultDriver|null
 	 * @throws PacketeryDibi\DriverException
 	 */
 	public function query($sql)
 	{
-		// must detect if SQL returns result set or num of affected rows
-		$cmd = strtoupper(substr(ltrim($sql), 0, 6));
-		static $list = ['UPDATE' => 1, 'DELETE' => 1, 'INSERT' => 1, 'REPLAC' => 1];
-		$this->affectedRows = FALSE;
-
-		if (isset($list[$cmd])) {
-			$this->affectedRows = $this->connection->exec($sql);
-			if ($this->affectedRows !== FALSE) {
-				return;
-			}
-		} else {
-			$res = $this->connection->query($sql);
-			if ($res) {
-				return $this->createResultDriver($res);
-			}
+		$res = $this->connection->query($sql);
+		if ($res) {
+			$this->affectedRows = $res->rowCount();
+			return $res->columnCount() ? $this->createResultDriver($res) : null;
 		}
+
+		$this->affectedRows = false;
 
 		list($sqlState, $code, $message) = $this->connection->errorInfo();
 		$message = "SQLSTATE[$sqlState]: $message";
 		switch ($this->driverName) {
 			case 'mysql':
-				throw new DriverException($message, $code);
+				throw MySqliDriver::createException($message, $code, $sql);
 
 			case 'oci':
-				throw new DriverException($message, $code);
+				throw OracleDriver::createException($message, $code, $sql);
 
 			case 'pgsql':
-				throw new DriverException($message);
+				throw PostgreDriver::createException($message, $sqlState, $sql);
 
 			case 'sqlite':
-				throw new DriverException($message, $code);
+				throw Sqlite3Driver::createException($message, $code, $sql);
 
 			default:
-				throw new DriverException($message, $code);
+				throw new PacketeryDibi\DriverException($message, $code, $sql);
 		}
 	}
 
 
 	/**
 	 * Gets the number of affected rows by the last INSERT, UPDATE or DELETE query.
-	 * @return int|FALSE  number of rows or FALSE on error
+	 * @return int|false  number of rows or false on error
 	 */
 	public function getAffectedRows()
 	{
@@ -145,11 +148,11 @@ class PdoDriver implements IDriver, IDriverResult
 
 	/**
 	 * Retrieves the ID generated for an AUTO_INCREMENT column by the previous INSERT query.
-	 * @return int|FALSE  int on success or FALSE on failure
+	 * @return int|false  int on success or false on failure
 	 */
 	public function getInsertId($sequence)
 	{
-		return $this->connection->lastInsertId();
+		return $this->connection->lastInsertId($sequence);
 	}
 
 
@@ -159,7 +162,7 @@ class PdoDriver implements IDriver, IDriverResult
 	 * @return void
 	 * @throws PacketeryDibi\DriverException
 	 */
-	public function begin($savepoint = NULL)
+	public function begin($savepoint = null)
 	{
 		if (!$this->connection->beginTransaction()) {
 			$err = $this->connection->errorInfo();
@@ -174,7 +177,7 @@ class PdoDriver implements IDriver, IDriverResult
 	 * @return void
 	 * @throws PacketeryDibi\DriverException
 	 */
-	public function commit($savepoint = NULL)
+	public function commit($savepoint = null)
 	{
 		if (!$this->connection->commit()) {
 			$err = $this->connection->errorInfo();
@@ -189,7 +192,7 @@ class PdoDriver implements IDriver, IDriverResult
 	 * @return void
 	 * @throws PacketeryDibi\DriverException
 	 */
-	public function rollback($savepoint = NULL)
+	public function rollback($savepoint = null)
 	{
 		if (!$this->connection->rollBack()) {
 			$err = $this->connection->errorInfo();
@@ -200,7 +203,7 @@ class PdoDriver implements IDriver, IDriverResult
 
 	/**
 	 * Returns the connection resource.
-	 * @return PDO
+	 * @return PDO|null
 	 */
 	public function getResource()
 	{
@@ -245,7 +248,7 @@ class PdoDriver implements IDriver, IDriverResult
 
 	/**
 	 * Encodes data for use in a SQL statement.
-	 * @param  mixed     value
+	 * @param  string    value
 	 * @return string    encoded value
 	 */
 	public function escapeText($value)
@@ -258,6 +261,10 @@ class PdoDriver implements IDriver, IDriverResult
 	}
 
 
+	/**
+	 * @param  string
+	 * @return string
+	 */
 	public function escapeBinary($value)
 	{
 		if ($this->driverName === 'odbc') {
@@ -268,6 +275,10 @@ class PdoDriver implements IDriver, IDriverResult
 	}
 
 
+	/**
+	 * @param  string
+	 * @return string
+	 */
 	public function escapeIdentifier($value)
 	{
 		switch ($this->driverName) {
@@ -295,16 +306,24 @@ class PdoDriver implements IDriver, IDriverResult
 	}
 
 
+	/**
+	 * @param  bool
+	 * @return string
+	 */
 	public function escapeBool($value)
 	{
 		if ($this->driverName === 'pgsql') {
 			return $value ? 'TRUE' : 'FALSE';
 		} else {
-			return $value ? 1 : 0;
+			return $value ? '1' : '0';
 		}
 	}
 
 
+	/**
+	 * @param  \DateTime|\DateTimeInterface|string|int
+	 * @return string
+	 */
 	public function escapeDate($value)
 	{
 		if (!$value instanceof \DateTime && !$value instanceof \DateTimeInterface) {
@@ -314,12 +333,24 @@ class PdoDriver implements IDriver, IDriverResult
 	}
 
 
+	/**
+	 * @param  \DateTime|\DateTimeInterface|string|int
+	 * @return string
+	 */
 	public function escapeDateTime($value)
 	{
 		if (!$value instanceof \DateTime && !$value instanceof \DateTimeInterface) {
 			$value = new PacketeryDibi\DateTime($value);
 		}
-		return $value->format($this->driverName === 'odbc' ? "#m/d/Y H:i:s#" : "'Y-m-d H:i:s'");
+		switch ($this->driverName) {
+			case 'odbc':
+				return $value->format('#m/d/Y H:i:s.u#');
+			case 'mssql':
+			case 'sqlsrv':
+				return 'CONVERT(DATETIME2(7), ' . $value->format("'Y-m-d H:i:s.u'") . ')';
+			default:
+				return $value->format("'Y-m-d H:i:s.u'");
+		}
 	}
 
 
@@ -385,9 +416,12 @@ class PdoDriver implements IDriver, IDriverResult
 
 	/**
 	 * Injects LIMIT/OFFSET to the SQL query.
+	 * @param  string
+	 * @param  int|null
+	 * @param  int|null
 	 * @return void
 	 */
-	public function applyLimit(& $sql, $limit, $offset)
+	public function applyLimit(&$sql, $limit, $offset)
 	{
 		if ($limit < 0 || $offset < 0) {
 			throw new PacketeryDibi\NotSupportedException('Negative offset or limit.');
@@ -395,26 +429,26 @@ class PdoDriver implements IDriver, IDriverResult
 
 		switch ($this->driverName) {
 			case 'mysql':
-				if ($limit !== NULL || $offset) {
+				if ($limit !== null || $offset) {
 					// see http://dev.mysql.com/doc/refman/5.0/en/select.html
-					$sql .= ' LIMIT ' . ($limit === NULL ? '18446744073709551615' : (int) $limit)
-						. ($offset ? ' OFFSET ' . (int) $offset : '');
+					$sql .= ' LIMIT ' . ($limit === null ? '18446744073709551615' : PacketeryDibi\Helpers::intVal($limit))
+						. ($offset ? ' OFFSET ' . PacketeryDibi\Helpers::intVal($offset) : '');
 				}
 				break;
 
 			case 'pgsql':
-				if ($limit !== NULL) {
-					$sql .= ' LIMIT ' . (int) $limit;
+				if ($limit !== null) {
+					$sql .= ' LIMIT ' . PacketeryDibi\Helpers::intVal($limit);
 				}
 				if ($offset) {
-					$sql .= ' OFFSET ' . (int) $offset;
+					$sql .= ' OFFSET ' . PacketeryDibi\Helpers::intVal($offset);
 				}
 				break;
 
 			case 'sqlite':
-				if ($limit !== NULL || $offset) {
-					$sql .= ' LIMIT ' . ($limit === NULL ? '-1' : (int) $limit)
-						. ($offset ? ' OFFSET ' . (int) $offset : '');
+				if ($limit !== null || $offset) {
+					$sql .= ' LIMIT ' . ($limit === null ? '-1' : PacketeryDibi\Helpers::intVal($limit))
+						. ($offset ? ' OFFSET ' . PacketeryDibi\Helpers::intVal($offset) : '');
 				}
 				break;
 
@@ -422,11 +456,11 @@ class PdoDriver implements IDriver, IDriverResult
 				if ($offset) {
 					// see http://www.oracle.com/technology/oramag/oracle/06-sep/o56asktom.html
 					$sql = 'SELECT * FROM (SELECT t.*, ROWNUM AS "__rnum" FROM (' . $sql . ') t '
-						. ($limit !== NULL ? 'WHERE ROWNUM <= ' . ((int) $offset + (int) $limit) : '')
-						. ') WHERE "__rnum" > '. (int) $offset;
+						. ($limit !== null ? 'WHERE ROWNUM <= ' . ((int) $offset + (int) $limit) : '')
+						. ') WHERE "__rnum" > ' . $offset;
 
-				} elseif ($limit !== NULL) {
-					$sql = 'SELECT * FROM (' . $sql . ') WHERE ROWNUM <= ' . (int) $limit;
+				} elseif ($limit !== null) {
+					$sql = 'SELECT * FROM (' . $sql . ') WHERE ROWNUM <= ' . PacketeryDibi\Helpers::intVal($limit);
 				}
 				break;
 
@@ -435,25 +469,23 @@ class PdoDriver implements IDriver, IDriverResult
 			case 'dblib':
 				if (version_compare($this->serverVersion, '11.0') >= 0) { // 11 == SQL Server 2012
 					// requires ORDER BY, see https://technet.microsoft.com/en-us/library/gg699618(v=sql.110).aspx
-					if ($limit !== NULL) {
+					if ($limit !== null) {
 						$sql = sprintf('%s OFFSET %d ROWS FETCH NEXT %d ROWS ONLY', rtrim($sql), $offset, $limit);
 					} elseif ($offset) {
 						$sql = sprintf('%s OFFSET %d ROWS', rtrim($sql), $offset);
 					}
 					break;
 				}
-				// intentionally break omitted
-
+				// break omitted
 			case 'odbc':
 				if ($offset) {
 					throw new PacketeryDibi\NotSupportedException('Offset is not supported by this database.');
 
-				} elseif ($limit !== NULL) {
-					$sql = 'SELECT TOP ' . (int) $limit . ' * FROM (' . $sql . ') t';
+				} elseif ($limit !== null) {
+					$sql = 'SELECT TOP ' . PacketeryDibi\Helpers::intVal($limit) . ' * FROM (' . $sql . ') t';
 					break;
 				}
-				// intentionally break omitted
-
+				// break omitted
 			default:
 				throw new PacketeryDibi\NotSupportedException('PDO or driver does not support applying limit or offset.');
 		}
@@ -475,7 +507,7 @@ class PdoDriver implements IDriver, IDriverResult
 
 	/**
 	 * Fetches the row at current position and moves the internal cursor to the next position.
-	 * @param  bool     TRUE for associative array, FALSE for numeric
+	 * @param  bool     true for associative array, false for numeric
 	 * @return array    array on success, nonarray if no next record
 	 */
 	public function fetch($assoc)
@@ -487,7 +519,7 @@ class PdoDriver implements IDriver, IDriverResult
 	/**
 	 * Moves cursor position without fetching row.
 	 * @param  int   the 0-based cursor pos to seek to
-	 * @return bool  TRUE on success, FALSE if unable to seek to specified record
+	 * @return bool  true on success, false if unable to seek to specified record
 	 */
 	public function seek($row)
 	{
@@ -501,7 +533,7 @@ class PdoDriver implements IDriver, IDriverResult
 	 */
 	public function free()
 	{
-		$this->resultSet = NULL;
+		$this->resultSet = null;
 	}
 
 
@@ -516,11 +548,11 @@ class PdoDriver implements IDriver, IDriverResult
 		$columns = [];
 		for ($i = 0; $i < $count; $i++) {
 			$row = @$this->resultSet->getColumnMeta($i); // intentionally @
-			if ($row === FALSE) {
+			if ($row === false) {
 				throw new PacketeryDibi\NotSupportedException('Driver does not support meta data.');
 			}
 			$row = $row + [
-				'table' => NULL,
+				'table' => null,
 				'native_type' => 'VAR_STRING',
 			];
 
@@ -528,7 +560,7 @@ class PdoDriver implements IDriver, IDriverResult
 				'name' => $row['name'],
 				'table' => $row['table'],
 				'nativetype' => $row['native_type'],
-				'type' => $row['native_type'] === 'TIME' && $this->driverName === 'mysql' ? PacketeryDibi\Type::TIME_INTERVAL : NULL,
+				'type' => $row['native_type'] === 'TIME' && $this->driverName === 'mysql' ? PacketeryDibi\Type::TIME_INTERVAL : null,
 				'fullname' => $row['table'] ? $row['table'] . '.' . $row['name'] : $row['name'],
 				'vendor' => $row,
 			];
@@ -536,79 +568,13 @@ class PdoDriver implements IDriver, IDriverResult
 		return $columns;
 	}
 
+
 	/**
 	 * Returns the result set resource.
-	 * @return \PDOStatement
+	 * @return \PDOStatement|null
 	 */
 	public function getResultResource()
 	{
 		return $this->resultSet;
 	}
-
-    /** @var int $key The cursor pointer */
-    protected $key;
-    /** @var  bool|\stdClass The resultset for a single row */
-    protected $result;
-    /** @var  bool $valid Flag indicating there's a valid resource or not */
-    protected $valid = true;
-
-    /**
-     * @inheritDoc
-     */
-    public function current()
-    {
-        return $this->result;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function next()
-    {
-        $this->key++;
-        $this->result = $this->resultSet->fetch(
-            \PDO::FETCH_ASSOC,
-            \PDO::FETCH_ORI_ABS,
-            $this->key
-        );
-        if (false === $this->result) {
-            $this->valid = false;
-            return null;
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function key()
-    {
-        return $this->key;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function valid()
-    {
-        return $this->valid;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function rewind()
-    {
-        $this->key = -1;
-        $this->next();
-    }
-
-    public function count()
-    {
-        return $this->resultSet->rowCount();
-    }
-
-    public function isConnected()
-    {
-        return $this->connection !== null;
-    }
 }
