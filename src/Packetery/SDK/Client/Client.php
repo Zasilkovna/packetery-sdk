@@ -2,33 +2,21 @@
 
 namespace Packetery\SDK\Client;
 
+use Packetery\SDK\Config;
 use Packetery\SDK\Feed\CarrierFilter;
 
 class Client
 {
-    /** @var string */
-    private $baseUrl;
+    /** @var Config */
+    private $config;
 
-    /** @var string */
-    private $version;
-
-    /** @var string */
-    private $apiKey;
-
-    /**
-     * @param string $baseUrl
-     * @param string $version
-     * @param string $apiKey
-     */
-    public function __construct($baseUrl, $version, $apiKey)
+    public function __construct(Config $config)
     {
-        $this->baseUrl = $baseUrl;
-        $this->version = $version;
-        $this->apiKey = $apiKey;
+        $this->config = $config;
     }
 
     /**
-     * @return \Packetery\SDK\Client\CallResult
+     * @return string
      */
     public function getSimpleCarriers()
     {
@@ -39,10 +27,7 @@ class Client
 
         $content = $this->get($url);
 
-        return new CallResult(
-            $content === false ? false : true,
-            $content ?: null
-        );
+        return $content ?: null;
     }
 
     private function get($url)
@@ -52,7 +37,10 @@ class Client
                 'http' =>
                     [
                         'method' => 'GET',
-                        'timeout' => 30,  // Seconds
+                        'header' => [
+                            'Connection: close',
+                        ],
+                        'timeout' => $this->config->getApiTimeout(),  // Seconds
                     ]
             ]
         );
@@ -75,7 +63,7 @@ class Client
     private function createUrl($endpoint, array $params)
     {
         $query = http_build_query($params);
-        $url = "{$this->baseUrl}/{$this->version}/{$this->apiKey}/{$endpoint}?{$query}";
+        $url = "{$this->config->getApiBaseUrl()}/v4/{$this->config->getApiKey()}/{$endpoint}?{$query}";
         return $url;
     }
 }

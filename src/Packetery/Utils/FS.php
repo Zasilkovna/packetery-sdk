@@ -2,6 +2,8 @@
 
 namespace Packetery\Utils;
 
+use Packetery\Domain\InvalidArgumentException;
+
 class FS
 {
     public static function rglob($pattern, $flags = 0)
@@ -11,5 +13,18 @@ class FS
             $files = array_merge($files, self::rglob($dir . '/' . basename($pattern), $flags));
         }
         return $files;
+    }
+
+    public static function removeFiles($pattern)
+    {
+        $files = self::rglob($pattern, GLOB_NOSORT);
+
+        foreach ($files ?: [] as $file) {
+            if (is_dir($file) || $file === '.' || $file === '..') {
+                continue;
+            }
+
+            unlink($file);
+        }
     }
 }

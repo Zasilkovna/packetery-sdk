@@ -2,9 +2,9 @@
 
 namespace Packetery\SDK\Feed;
 
-use Packetery\SDK\Collection;
+use Packetery\SDK\AbstractCollection;
 
-class SimpleCarrierCollection extends Collection
+class SimpleCarrierCollection extends AbstractCollection
 {
 
     public function getItemClass()

@@ -2,14 +2,10 @@
 
 namespace Packetery\SDK;
 
-use Packetery\Domain\InvalidArgumentException;
 use Packetery\SDK\Storage\IStorage;
-use Packetery\Utils\FS;
 
 class Cache
 {
-    const OPTION_EXPIRATION = 'expiration';
-
     /** @var \Packetery\SDK\Storage\IStorage */
     private $storage;
 
@@ -19,24 +15,6 @@ class Cache
     public function __construct(IStorage $storage)
     {
         $this->storage = $storage;
-    }
-
-    public static function createCacheFolder($tempFolder)
-    {
-        if (!is_dir($tempFolder)) {
-            throw new InvalidArgumentException('Not a folder: ' . $tempFolder);
-        }
-
-        if (!is_writable($tempFolder)) {
-            throw new InvalidArgumentException('Folder not writable: ' . $tempFolder);
-        }
-
-        $finalDir = $tempFolder . ('/cache');
-        if (!is_dir($finalDir)) {
-            mkdir($finalDir);
-        }
-
-        return $finalDir;
     }
 
     public function exists($key)
@@ -62,14 +40,19 @@ class Cache
         return false;
     }
 
-    public function load($key, callable $factory, array $options = null)
+    /**
+     * @param $key
+     * @param callable $factory It is called when no content is found
+     * @param int|null $expirationSeconds
+     * @return mixed|null
+     * @throws \Packetery\Domain\InvalidStateException
+     */
+    public function load($key, callable $factory, $expirationSeconds = null)
     {
-        if ($options !== null) {
-            if (isset($options[self::OPTION_EXPIRATION])) {
-                $maxDuration = $options[self::OPTION_EXPIRATION];
-                if ($this->isExpired($key, $maxDuration)) {
-                    $this->storage->remove($key);
-                }
+        if ($expirationSeconds !== null) {
+            $maxDuration = $expirationSeconds;
+            if ($this->isExpired($key, $maxDuration)) {
+                $this->storage->remove($key);
             }
         }
 
@@ -81,20 +64,5 @@ class Cache
         }
 
         return $content;
-    }
-
-    public static function clearAll($tempFolder)
-    {
-        if (is_dir($tempFolder . ('/cache'))) {
-            $files = FS::rglob($tempFolder . ('/cache/*'), GLOB_NOSORT);
-
-            foreach ($files as $file) {
-                if (is_dir($file) || $file === '.' || $file === '..') {
-                    continue;
-                }
-
-                unlink($file);
-            }
-        }
     }
 }

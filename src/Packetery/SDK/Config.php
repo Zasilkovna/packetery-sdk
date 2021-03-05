@@ -19,14 +19,24 @@ class Config
         $this->config = $config;
     }
 
+    public function getFeedCacheExpirationSeconds()
+    {
+        return $this->getParameter(['feedCacheExpirationSeconds'], 60 * 10);
+    }
+
+    public function getApiTimeout()
+    {
+        return $this->getParameter(['api', 'timeout'], 30);
+    }
+
     public function getApiBaseUrl()
     {
-        return $this->getParameter(['apiBaseUrl']);
+        return $this->getParameter(['api', 'baseUrl']);
     }
 
     public function getApiKey()
     {
-        return $this->getParameter(['apiKey']);
+        return $this->getParameter(['api', 'key']);
     }
 
     public function getTempFolder()
@@ -34,18 +44,12 @@ class Config
         return $this->getParameter(['tempFolder']);
     }
 
-    public function getTablePrefix()
+    private function getParameter(array $keys, $default = null)
     {
-        return $this->getParameter(['tablePrefix']);
-    }
+        if (func_num_args() < 2) {
+            return Arrays::getValue($this->config['parameters'], $keys);
+        }
 
-    public function getConnection()
-    {
-        return $this->getParameter(['connection']);
-    }
-
-    private function getParameter(array $keys)
-    {
-        return Arrays::getValue($this->config['parameters'], $keys);
+        return Arrays::getValue($this->config['parameters'], $keys, $default);
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Packetery\SDK\Feed;
 
+/**
+ * Allows high abstraction level to specify what should be returned
+ */
 class CarrierFilter
 {
     /** @var array|null */
@@ -9,9 +12,6 @@ class CarrierFilter
 
     /** @var array|null */
     private $excludedIds;
-
-    /** @var array */
-    private $apiParams = [];
 
     /** @var int|null */
     private $limit;
@@ -46,11 +46,11 @@ class CarrierFilter
     }
 
     /** null means that you do not care
+     *
      * @param string $country
-     * @param bool $addressDeliveryOnly Only select carriers for home delivery?
-     * @param bool $inFeedOnly Was carrier in packetery feed last time
+     * @param bool $forAddressDelivery Only select carriers for home delivery?
      */
-    public function buildSample($country, $addressDeliveryOnly, $inFeedOnly)
+    public function buildSample($country, $forAddressDelivery)
     {
         $sample = new SimpleCarrierSample();
 
@@ -58,12 +58,8 @@ class CarrierFilter
             $sample->setCountry($country);
         }
 
-        if (is_bool($addressDeliveryOnly)) {
-            $sample->setPickupPoints($addressDeliveryOnly);
-        }
-
-        if (is_bool($inFeedOnly)) {
-            $sample->setInFeed($inFeedOnly);
+        if (is_bool($forAddressDelivery)) {
+            $sample->setPickupPoints(!$forAddressDelivery);
         }
 
         $this->simpleCarrierSample = $sample;
@@ -93,24 +89,5 @@ class CarrierFilter
     public function setIds(array $ids = null)
     {
         $this->ids = $ids;
-    }
-
-    /** Returns API compatible assoc array for query building
-     *
-     * @return array
-     */
-    public function getApiParams()
-    {
-        return $this->apiParams;
-    }
-
-    public function setApiParams(array $apiParams)
-    {
-        $this->apiParams = $apiParams;
-    }
-
-    public function createApiHash()
-    {
-        return (md5(serialize($this->getApiParams())));
     }
 }

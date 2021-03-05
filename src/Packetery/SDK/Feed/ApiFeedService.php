@@ -30,10 +30,10 @@ class ApiFeedService implements IFeedService
         $collection = new SimpleCarrierCollection();
 
         $count = 0;
-        $limit = $branchFilter !== null && $branchFilter->getLimit() !== null && $branchFilter->getLimit() > 0 ? $branchFilter->getLimit() : null;
+        $limit = $branchFilter !== null ? $branchFilter->getLimit() : null;
         $carriers = $this->feedServiceBrain->getSimpleCarrierGenerator();
         foreach ($carriers as $carrier) {
-            if ($limit !== null && $count > $limit) {
+            if ($limit !== null && $count >= $limit) {
                 break;
             }
 
@@ -57,6 +57,7 @@ class ApiFeedService implements IFeedService
                             continue;
                         }
                     }
+
                     if ($carrierSample->isPickupPoints() !== null) {
                         if ($carrierSample->isPickupPoints() !== $carrier->isPickupPoints()) {
                             continue;
@@ -93,7 +94,7 @@ class ApiFeedService implements IFeedService
     {
         $filter = new CarrierFilter();
 
-        $sample = $filter->getSimpleCarrierSample() ?: new SimpleCarrierSample(); // todo same with db feed
+        $sample = $filter->getSimpleCarrierSample() ?: new SimpleCarrierSample();
         $sample->setCountry($country);
 
         $filter->setSimpleCarrierSample($sample);
@@ -124,10 +125,9 @@ class ApiFeedService implements IFeedService
         $filter = new CarrierFilter();
 
         $sample = new SimpleCarrierSample();
-        $sample->setPickupPoints(false);
         $sample->setCountry($country);
 
         $filter->setSimpleCarrierSample($sample);
-        return $this->getSimpleCarriers($filter);
+        return $this->getAddressDeliveryCarriers($filter);
     }
 }

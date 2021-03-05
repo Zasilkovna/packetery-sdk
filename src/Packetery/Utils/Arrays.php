@@ -20,11 +20,12 @@ class Arrays
 
         foreach ($keys as $key) {
             if (is_array($value) && array_key_exists($key, $value)) {
-                $value = $arr[$key];
+                $value = $value[$key];
                 $any = true;
             } else {
                 // key does not exist in array
                 $any = false;
+                break;
             }
         }
 

@@ -10,18 +10,18 @@ class FileStorage implements IStorage
     /** @var string */
     private $dir;
 
-    /**
-     * FileStorage constructor.
-     *
-     * @param string $dir
-     */
-    public function __construct($dir)
+    /** @var string */
+    private $name;
+
+    public function __construct($dir, $name = null)
     {
         $this->dir = $dir;
 
         if (!is_writable($this->dir)) {
             throw new InvalidArgumentException('temp folder is not writable');
         }
+
+        $this->name = $name ?: 'default';
     }
 
     public function get($key)
@@ -75,13 +75,13 @@ class FileStorage implements IStorage
 
     private function getFilePath($key)
     {
-        $hash = $this->createHash($key);
+        $hash = $this->createFilename($key);
         return $this->dir . DIRECTORY_SEPARATOR . $hash;
     }
 
-    private function createHash($key)
+    private function createFilename($key)
     {
-        return md5((string)$key);
+        return $this->name . '_' . $key . '.txt';
     }
 
     function remove($key)
@@ -93,5 +93,23 @@ class FileStorage implements IStorage
     function exists($key)
     {
         return file_exists($this->getFilePath($key));
+    }
+
+    public static function createCacheFileStorage($tempFolder, $name = null)
+    {
+        if (!is_dir($tempFolder)) {
+            throw new InvalidArgumentException('Not a folder: ' . $tempFolder);
+        }
+
+        if (!is_writable($tempFolder)) {
+            throw new InvalidArgumentException('Folder not writable: ' . $tempFolder);
+        }
+
+        $finalDir = $tempFolder . '/cache';
+        if (!is_dir($finalDir)) {
+            mkdir($finalDir);
+        }
+
+        return new FileStorage($finalDir, $name);
     }
 }

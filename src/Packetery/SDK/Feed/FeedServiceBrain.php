@@ -16,15 +16,21 @@ class FeedServiceBrain
     /** @var \Packetery\SDK\Client\Client */
     private $client;
 
+    /** @var \Packetery\SDK\Config */
+    private $config;
+
     /**
      * ApiFeedService constructor.
      *
      * @param \Packetery\SDK\Client\Client $client
+     * @param \Packetery\SDK\Storage\IStorage $cacheStorage
+     * @param \Packetery\SDK\Config $config
      */
-    public function __construct(\Packetery\SDK\Client\Client $client, IStorage $cacheStorage)
+    public function __construct(\Packetery\SDK\Client\Client $client, IStorage $cacheStorage, \Packetery\SDK\Config $config)
     {
         $this->client = $client;
         $this->cache = new Cache($cacheStorage);
+        $this->config = $config;
     }
 
     /**
@@ -34,7 +40,7 @@ class FeedServiceBrain
     public function getSimpleCarrierExport()
     {
         $callResult = $this->client->getSimpleCarriers();
-        return $callResult->getResponseBody();
+        return $callResult ?: null;
     }
 
     /**
@@ -44,11 +50,14 @@ class FeedServiceBrain
     {
         $responseBody = null;
         try {
-            $responseBody = $this->cache->load('feedCache', function () {
-                return $this->getSimpleCarrierExport();
-            }, [
-                Cache::OPTION_EXPIRATION => 60
-            ]);
+            // in case endpoint is unavailable
+            $responseBody = $this->cache->load(
+                'feedCache',
+                function () {
+                    return $this->getSimpleCarrierExport();
+                },
+                $this->config->getFeedCacheExpirationSeconds()
+            );
 
         } catch (ClientException $exception) {
         }
@@ -65,7 +74,6 @@ class FeedServiceBrain
         $carriers = Arrays::getValue($decoded ?: [], ['carriers'], []);
         foreach ($carriers as $key => $carrier) {
             $instance = SimpleCarrier::createFromFeedArray($carrier);
-            $instance->setInFeed(true);
             yield $key => $instance; // so it does not matter how many items there are
         }
     }

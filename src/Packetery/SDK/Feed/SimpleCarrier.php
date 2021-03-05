@@ -4,11 +4,18 @@ namespace Packetery\SDK\Feed;
 
 use Packetery\Utils\Arrays;
 
-/** todo carrier has flag that says if it is HD or PP carrier and contains no list of points
- * Home delivery carrier
+/**
+ * Carrier has flag that says if it is HD or PP carrier and contains no list of points
+ * Home delivery or pickup point carrier. Based on branch.json packeta endpoint
  */
-class SimpleCarrier extends Carrier
+class SimpleCarrier
 {
+    /** @var string */
+    private $id;
+
+    /** @var string */
+    private $name;
+
     /** @var string|null */
     private $country;
 
@@ -48,8 +55,11 @@ class SimpleCarrier extends Carrier
     /** @var string|null */
     private $labelName;
 
-    /** @var bool|null */
-    private $inFeed;
+    public function __construct($id, $name)
+    {
+        $this->id = $id;
+        $this->name = $name;
+    }
 
     private static function parseBool($carrier, $keys)
     {
@@ -69,7 +79,7 @@ class SimpleCarrier extends Carrier
 
     public static function createFromFeedArray(array $carrier)
     {
-        $instance = parent::createFromFeedArray($carrier);
+        $instance = new static((string)$carrier['id'], $carrier['name']);
 
         $instance->setApiAllowed(self::parseBool($carrier, ['apiAllowed']));
         $instance->setPickupPoints(self::parseBool($carrier, ['pickupPoints']));
@@ -89,20 +99,20 @@ class SimpleCarrier extends Carrier
         return $instance;
     }
 
-    public static function createFromDatabaseRow(array $carrier)
+    /**
+     * @return string
+     */
+    public function getId()
     {
-        if (empty($carrier['id'])) {
-            $carrier['id'] = $carrier['carrier_id']; // always same thing
-        }
-        unset($carrier['carrier_id']);
+        return $this->id;
+    }
 
-        $instance = self::createFromFeedArray($carrier);
-        $inFeed = Arrays::getValue($carrier, ['in_feed']);
-        if ($inFeed !== null) {
-            $instance->setInFeed((bool)$inFeed);
-        }
-
-        return $instance;
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**
@@ -272,18 +282,5 @@ class SimpleCarrier extends Carrier
     public function setLabelName($labelName = null)
     {
         $this->labelName = $labelName;
-    }
-
-    /**
-     * @return bool|null
-     */
-    public function isInFeed()
-    {
-        return $this->inFeed;
-    }
-
-    public function setInFeed($inFeed)
-    {
-        $this->inFeed = $inFeed;
     }
 }

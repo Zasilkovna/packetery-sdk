@@ -2,6 +2,8 @@
 
 namespace Packetery\SDK\Storage;
 
+use Packetery\Domain\InvalidStateException;
+
 class MemoryStorage implements IStorage
 {
     /** @var array */
@@ -33,6 +35,6 @@ class MemoryStorage implements IStorage
 
     function duration($val)
     {
-        return 0.0; // todo implement correct durations
+        throw new InvalidStateException('not implemented');
     }
 }

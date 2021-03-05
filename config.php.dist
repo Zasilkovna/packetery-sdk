@@ -4,18 +4,12 @@
 
 return [
     'parameters' => [
-        'tempFolder' => __DIR__ . '/../temp',
-        'apiKey' => 'asksksjsjsjsjsjieiesksprieueuiow', // see client.packeta.com
-        'apiBaseUrl' => 'http://www.zasilkovna.cz/api',
-        // if driver is already connected then connection params are not used
-		'connection' => [
-			'host' => 'host.docker.internal',
-			'port' => '3306',
-			'database' => 'my_project',
-            'charset' => 'utf8',
-			'user' => 'user',
-			'password' => 'jsaoioijewoijsareiudsoieoispqqqq',
-		],
-        'tablePrefix' => '' // please leave empty if possible
+        'tempFolder' => __DIR__ . '/temp',
+        'api' => [
+            'key' => 'yourApiKey', // see client.packeta.com
+            'baseUrl' => 'http://www.zasilkovna.cz/api',
+            'timeout' => 30,
+        ],
+		'feedCacheExpirationSeconds' => 30
     ]
 ];

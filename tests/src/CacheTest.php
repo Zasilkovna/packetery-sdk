@@ -6,6 +6,7 @@ require __DIR__ . '/../autoload.php';
 
 use Packetery\SDK\Cache;
 use Packetery\SDK\Storage\MemoryStorage;
+use Packetery\Utils\FS;
 
 class CacheTest extends BaseTest
 {
@@ -22,9 +23,7 @@ class CacheTest extends BaseTest
             function () use ($content) {
                 return ($content);
             },
-            [
-                Cache::OPTION_EXPIRATION => 0
-            ]
+            0
         );
 
         $this->assertTrue($cache->exists($key), 'cache file must exist');
@@ -38,9 +37,7 @@ class CacheTest extends BaseTest
             function () use ($content2) {
                 return ($content2);
             },
-            [
-                Cache::OPTION_EXPIRATION => 100
-            ]
+            100
         );
 
         $this->assertEquals((string)$contentLoaded, $content, 'cache invalidated when it should not');
@@ -52,15 +49,38 @@ class CacheTest extends BaseTest
             function () use ($content3) {
                 return ($content3);
             },
-            [
-                Cache::OPTION_EXPIRATION => -1
-            ]
+            -1
         );
 
         $this->assertEquals((string)$contentLoaded, $content3, 'cache was not invalidated');
 
         $this->assertTrue($cache->exists($key));
-        Cache::clearAll($this->config->getTempFolder());
+        $storage = $this->createCacheFileStorage('testCache2');
+        $cache2InSameDir = new Cache($storage);
+
+        $content4 = md5(microtime() . rand());
+        $contentLoadedOther = $cache2InSameDir->load($key, function () use ($content4) {
+            return $content4;
+        });
+
+        $contentLoadedOther = $cache2InSameDir->load($key, function () use ($content4) {
+            return 'failed';
+        });
+
+        $this->assertEquals($contentLoadedOther, $content4, 'cache was not invalidated');
+
+        $contentLoaded = $cache->load(
+            $key,
+            function () use ($content3) {
+                return 'new content that must not be there';
+            },
+            1000
+        );
+
+        $this->assertEquals($contentLoaded, $content3, 'cache was not invalidated');
+
+        $this->assertTrue($cache->exists($key));
+        FS::removeFiles($this->config->getTempFolder() . '/*');
         $this->assertFalse($cache->exists($key));
     }
 

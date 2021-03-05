@@ -4,7 +4,7 @@ namespace Packetery\SDK;
 
 use Packetery\Domain\InvalidArgumentException;
 
-abstract class Collection implements \JsonSerializable, \IteratorAggregate, \Countable
+abstract class AbstractCollection implements \JsonSerializable, \IteratorAggregate, \Countable, \ArrayAccess
 {
 
     /**
@@ -38,7 +38,7 @@ abstract class Collection implements \JsonSerializable, \IteratorAggregate, \Cou
     protected function assertItemType($value) {
         $class = $this->getItemClass();
         if (!$value instanceof $class) {
-            throw new InvalidArgumentException(sprintf("Invalid item type encoutered: '%s' expected '%s'.", get_class($value), $class));
+            throw new InvalidArgumentException(sprintf("Invalid item type encoutered: '%s' expected '%s'.", is_object($value) ? get_class($value) : gettype($value), $class));
         }
     }
 
@@ -247,112 +247,6 @@ abstract class Collection implements \JsonSerializable, \IteratorAggregate, \Cou
      */
     public function toArray() {
         return $this->items;
-    }
-
-    /**
-     * Filter items by value, leaving the original collection untouched.
-     *
-     * @param callable $filter
-     * @return $this
-     */
-    public function filterByValue(callable $filter) {
-        return new static(array_filter($this->items, $filter));
-    }
-
-    /**
-     * Filter items by key, leaving the original collection untouched.
-     *
-     * @param callable $filter
-     * @return $this
-     */
-    public function filterByKey(callable $filter) {
-        return new static(array_filter($this->items, $filter, ARRAY_FILTER_USE_KEY));
-    }
-
-    /**
-     * Filter items by key and value, leaving the original collection untouched.
-     *
-     * @param callable $filter
-     * @return $this
-     */
-    public function filterByKeyAndValue(callable $filter) {
-        return new static(array_filter($this->items, $filter, ARRAY_FILTER_USE_BOTH));
-    }
-
-    /**
-     * Sort items by values, returning a copy of collection keeping the original untouched.
-     *
-     * @param callable|null $filter
-     * @return $this
-     */
-    public function sortByValue($filter = null) {
-        $items = array_replace([], $this->items);
-        if($filter !== null) {
-            uasort($items, $filter);
-        }
-        else {
-            asort($items);
-        }
-
-        return new static($items);
-    }
-
-    /**
-     * Sort items by its keys, returning a copy of collection keeping the original untouched.
-     *
-     * @param callable|null $filter
-     * @return $this
-     */
-    public function sortByKey($filter = null) {
-        $items = array_replace([], $this->items);
-        if($filter !== null) {
-            uksort($items, $filter);
-        }
-        else {
-            ksort($items);
-        }
-
-        return new static($items);
-    }
-
-    /**
-     * Return the first occurrence of an item matching given filter.
-     *
-     * @param callable $filter
-     * @return mixed|null
-     */
-    public function findValue(callable $filter) {
-        list(, $value) = $this->findKeyAndValue($filter) ?: [null, null];
-
-        return $value;
-    }
-
-    /**
-     * Return the key of the first occurrence of an item matching given filter.
-     *
-     * @param callable $filter
-     * @return mixed|null
-     */
-    public function findKey(callable $filter) {
-        list($key,) = $this->findKeyAndValue($filter) ?: [null, null];
-
-        return $key;
-    }
-
-    /**
-     * Return both the key and the value of an item matching given filter.
-     *
-     * @param callable $filter
-     * @return array|null
-     */
-    public function findKeyAndValue(callable $filter) {
-        foreach($this->items as $key => $item) {
-            if($filter($item)) {
-                return [$key, $item];
-            }
-        }
-
-        return null;
     }
 
     /**
