@@ -80,7 +80,7 @@ class Connection
 		if ($config['driver'] instanceof Driver) {
 			$this->driver = $config['driver'];
 			$config['driver'] = get_class($this->driver);
-		} elseif (is_subclass_of($config['driver'], 'Dibi\Driver')) {
+		} elseif (is_subclass_of($config['driver'], 'PacketeryDibi\Driver')) {
 			$this->driver = new $config['driver'];
 		} else {
 			$class = preg_replace(['#\W#', '#sql#'], ['_', 'Sql'], ucfirst(strtolower($config['driver'])));

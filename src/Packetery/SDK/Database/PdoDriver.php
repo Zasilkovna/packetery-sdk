@@ -593,7 +593,7 @@ class PdoDriver implements IDriver, IDriverResult
         return $this->valid;
     }
 
-    /**
+    /** todo fix probably throw
      * @inheritDoc
      */
     public function rewind()

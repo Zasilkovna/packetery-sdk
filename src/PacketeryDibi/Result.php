@@ -30,7 +30,7 @@ class Result implements IDataSource
 	private $fetched = false;
 
 	/** @var string|null  returned object class */
-	private $rowClass = 'Dibi\Row';
+	private $rowClass = 'PacketeryDibi\Row';
 
 	/** @var callable|null  returned object factory */
 	private $rowFactory;

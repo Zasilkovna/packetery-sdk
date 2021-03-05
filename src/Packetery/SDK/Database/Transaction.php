@@ -2,6 +2,9 @@
 
 namespace Packetery\SDK\Database;
 
+/**
+ * Handles nested transactions
+ */
 class Transaction
 {
     static $transaction_nest_level = 0;
