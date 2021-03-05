@@ -9,7 +9,7 @@ interface IDriver
 
     /**
      * @param $sql
-     * @return \Iterator
+     * @return \IDriverResult
      */
     public function query($sql);
 
