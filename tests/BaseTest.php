@@ -105,6 +105,7 @@ abstract class BaseTest extends TestCase
         $carrier = new Carrier('17', 'SK POST HD');
         $carrier->setCountry('sk');
         $carrier->setPickupPoints(false);
+        $carrier->setCustomsDeclarations(false);
         $collection->add($carrier);
 
         $carrier = Carrier::createFromFeedArray(

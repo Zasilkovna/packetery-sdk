@@ -84,8 +84,10 @@ foreach ($carrierCollection as $carrier) {
 }
 ')));
 
-echo "<br><h4>all carriers</h4>";
-$carrierCollection = $feedService->getCarriers();
+echo "<br><h4>all carriers by custom filter - carrier without customs declarations</h4>";
+$filter = new \Packetery\SDK\Feed\CarrierFilter();
+$filter->setRequiresCustomsDeclarations(false);
+$carrierCollection = $feedService->getCarriers($filter);
 echo "carrier count: " . count($carrierCollection) . "<br>";
 foreach ($carrierCollection as $carrier) {
     echo $carrier->getName();
@@ -95,7 +97,9 @@ foreach ($carrierCollection as $carrier) {
 echo nl2br(str_replace(' ', '&nbsp;', htmlentities('
 $container = \Packetery\SDK\Container::create(require __DIR__ . "/config.php");
 $feedService = $container->getApiFeedService();
-$carrierCollection = $feedService->getCarriers();
+$filter = new \Packetery\SDK\Feed\CarrierFilter();
+$filter->setRequiresCustomsDeclarations(false);
+$carrierCollection = $feedService->getCarriers($filter);
 echo "carrier count: " . count($carrierCollection) . "<br>";
 foreach ($carrierCollection as $carrier) {
     echo $carrier->getName();

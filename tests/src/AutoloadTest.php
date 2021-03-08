@@ -9,7 +9,7 @@ use Packetery\SDK\Container;
 use Packetery\SDK\Feed\IFeedService;
 use Packetery\Utils\Json;
 
-class DatabaseFeedServiceTest extends BaseTest
+class AutoloadTest extends BaseTest
 {
 
     public function testClassAutoload()

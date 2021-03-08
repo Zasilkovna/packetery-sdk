@@ -22,4 +22,12 @@ class CarrierCollection extends AbstractCollection
     {
         return parent::first();
     }
+
+    /**
+     * @return \Packetery\SDK\Feed\Carrier|null
+     */
+    public function last()
+    {
+        return parent::last();
+    }
 }

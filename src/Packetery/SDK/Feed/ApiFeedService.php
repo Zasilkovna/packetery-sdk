@@ -44,24 +44,21 @@ class ApiFeedService implements IFeedService
                     }
                 }
 
-                $carrierSample = $branchFilter->getCarrierSample();
-                if ($carrierSample) {
-                    if ($carrierSample->getCountry() !== null) {
-                        if ($carrierSample->getCountry() !== $carrier->getCountry()) {
-                            continue;
-                        }
+                if ($branchFilter->getCountries() !== null) {
+                    if (!in_array($carrier->getCountry(), $branchFilter->getCountries())) {
+                        continue;
                     }
+                }
 
-                    if ($carrierSample->isPickupPoints() !== null) {
-                        if ($carrierSample->isPickupPoints() !== $carrier->isPickupPoints()) {
-                            continue;
-                        }
+                if ($branchFilter->getHasPickupPoints() !== null) {
+                    if ($carrier->isPickupPoints() !== $branchFilter->getHasPickupPoints()) {
+                        continue;
                     }
+                }
 
-                    if ($carrierSample->isCustomsDeclarations() !== null) {
-                        if ($carrierSample->isCustomsDeclarations() !== $carrier->isCustomsDeclarations()) {
-                            continue;
-                        }
+                if ($branchFilter->getRequiresCustomsDeclarations() !== null) {
+                    if ($carrier->isCustomsDeclarations() !== $branchFilter->getRequiresCustomsDeclarations()) {
+                        continue;
                     }
                 }
             }
@@ -93,11 +90,7 @@ class ApiFeedService implements IFeedService
     public function getCarriersByCountry($country)
     {
         $filter = new CarrierFilter();
-
-        $sample = $filter->getCarrierSample() ?: new CarrierSample();
-        $sample->setCountry($country);
-
-        $filter->setCarrierSample($sample);
+        $filter->setCountries([$country]);
         return $this->getCarriers($filter);
     }
 
@@ -108,11 +101,7 @@ class ApiFeedService implements IFeedService
     public function getAddressDeliveryCarriers(CarrierFilter $branchFilter = null)
     {
         $filter = $branchFilter ?: new CarrierFilter();
-
-        $sample = $filter->getCarrierSample() ?: new CarrierSample();
-        $sample->setPickupPoints(false);
-
-        $filter->setCarrierSample($sample);
+        $filter->setHasPickupPoints(false);
         return $this->getCarriers($filter);
     }
 
@@ -123,11 +112,7 @@ class ApiFeedService implements IFeedService
     public function getPickupPointCarriers(CarrierFilter $branchFilter = null)
     {
         $filter = $branchFilter ?: new CarrierFilter();
-
-        $sample = $filter->getCarrierSample() ?: new CarrierSample();
-        $sample->setPickupPoints(true);
-
-        $filter->setCarrierSample($sample);
+        $filter->setHasPickupPoints(true);
         return $this->getCarriers($filter);
     }
 
@@ -138,11 +123,7 @@ class ApiFeedService implements IFeedService
     public function getAddressDeliveryCarriersByCountry($country)
     {
         $filter = new CarrierFilter();
-
-        $sample = new CarrierSample();
-        $sample->setCountry($country);
-
-        $filter->setCarrierSample($sample);
+        $filter->setCountries([$country]);
         return $this->getAddressDeliveryCarriers($filter);
     }
 
@@ -153,11 +134,7 @@ class ApiFeedService implements IFeedService
     public function getPickupPointCarriersByCountry($country)
     {
         $filter = new CarrierFilter();
-
-        $sample = new CarrierSample();
-        $sample->setCountry($country);
-
-        $filter->setCarrierSample($sample);
+        $filter->setCountries([$country]);
         return $this->getPickupPointCarriers($filter);
     }
 }

@@ -13,20 +13,61 @@ class CarrierFilter
     /** @var int|null */
     private $limit;
 
-    /** @var \Packetery\SDK\Feed\CarrierSample|null */
-    private $carrierSample;
+    /** @var string[] */
+    private $countries;
+
+    /** @var bool|null */
+    private $requiresCustomsDeclarations;
+
+    /** @var bool|null */
+    private $hasPickupPoints;
 
     /**
-     * @return \Packetery\SDK\Feed\CarrierSample|null
+     * @return string[]
      */
-    public function getCarrierSample()
+    public function getCountries()
     {
-        return $this->carrierSample;
+        return $this->countries;
     }
 
-    public function setCarrierSample(CarrierSample $carrierSample = null)
+    /**
+     * @param string[] $countries
+     */
+    public function setCountries($countries)
     {
-        $this->carrierSample = $carrierSample;
+        $this->countries = $countries;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getRequiresCustomsDeclarations()
+    {
+        return $this->requiresCustomsDeclarations;
+    }
+
+    /**
+     * @param bool $requiresCustomsDeclarations
+     */
+    public function setRequiresCustomsDeclarations($requiresCustomsDeclarations)
+    {
+        $this->requiresCustomsDeclarations = $requiresCustomsDeclarations;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getHasPickupPoints()
+    {
+        return $this->hasPickupPoints;
+    }
+
+    /**
+     * @param bool $hasPickupPoints
+     */
+    public function setHasPickupPoints($hasPickupPoints)
+    {
+        $this->hasPickupPoints = $hasPickupPoints;
     }
 
     /** null means that you do not care
@@ -36,17 +77,13 @@ class CarrierFilter
      */
     public function buildSample($country, $forAddressDelivery)
     {
-        $sample = new CarrierSample();
-
         if (is_string($country)) {
-            $sample->setCountry($country);
+            $this->setCountries([$country]);
         }
 
         if (is_bool($forAddressDelivery)) {
-            $sample->setPickupPoints(!$forAddressDelivery);
+            $this->setHasPickupPoints(!$forAddressDelivery);
         }
-
-        $this->carrierSample = $sample;
     }
 
     /**

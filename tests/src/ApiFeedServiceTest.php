@@ -9,7 +9,6 @@ use Packetery\SDK\Feed\ApiFeedService;
 use Packetery\SDK\Feed\CarrierFilter;
 use Packetery\SDK\Feed\FeedServiceBrain;
 use Packetery\SDK\Feed\Carrier;
-use Packetery\SDK\Feed\CarrierSample;
 
 require __DIR__ . '/../autoload.php';
 
@@ -60,15 +59,48 @@ class ApiFeedServiceTest extends BaseTest
         $this->assertNotEmpty($ids);
         $uniqueIds = array_unique($ids);
         $this->assertCount(count($uniqueIds), $ids, 'collection contains duplicate carriers');
+
+        $carriers = $service->getPickupPointCarriersByCountry('de');
+        $this->assertTrue($carriers->count() > 0, 'count is 0');
+
+        $ids = [];
+        foreach ($carriers->toArray() as $carrier) {
+            $ids[] = (string)$carrier->getId();
+            $this->assertNotEmpty((string)$carrier->getId(), 'id is empty');
+            $this->assertEquals($carrier->getCountry(), 'de');
+        }
+
+        $this->assertNotEmpty($ids);
+        $uniqueIds = array_unique($ids);
+        $this->assertCount(count($uniqueIds), $ids, 'collection contains duplicate carriers');
     }
 
     public function testFilter()
     {
         $generatorData = $this->createSimpleCarrierCollection();
 
+        $this->assertFalse($this->callPrivateMethod($generatorData->last(), 'parseBool', [['field' => 'false'], ['field']]));
+        $this->assertFalse($this->callPrivateMethod($generatorData->last(), 'parseBool', [['field' => 0], ['field']]));
+        $this->assertFalse($this->callPrivateMethod($generatorData->last(), 'parseBool', [['field' => false], ['field']]));
+        $this->assertTrue($this->callPrivateMethod($generatorData->last(), 'parseBool', [['field' => 'true'], ['field']]));
+        $this->assertTrue($this->callPrivateMethod($generatorData->last(), 'parseBool', [['field' => 1], ['field']]));
+        $this->assertTrue($this->callPrivateMethod($generatorData->last(), 'parseBool', [['field' => true], ['field']]));
+
         $this->assertEquals(18, $generatorData->last()->getId());
         $this->assertEquals(10, $generatorData->last()->getMaxWeight());
         $this->assertEquals('HUF', $generatorData->last()->getCurrency());
+        $this->assertEquals('HU TOF PP', $generatorData->last()->getName());
+        $this->assertEquals('labelName', $generatorData->last()->getLabelName());
+        $this->assertEquals('labelrouting--00-22', $generatorData->last()->getLabelRouting());
+        $this->assertEquals('hu', $generatorData->last()->getCountry());
+        $this->assertEquals(true, $generatorData->last()->isRequiresSize());
+        $this->assertEquals(true, $generatorData->last()->isRequiresEmail());
+        $this->assertEquals(false, $generatorData->last()->isRequiresPhone());
+        $this->assertEquals(false, $generatorData->last()->isCustomsDeclarations());
+        $this->assertEquals(true, $generatorData->last()->isPickupPoints());
+        $this->assertEquals(false, $generatorData->last()->isDisallowsCod());
+        $this->assertEquals(true, $generatorData->last()->isSeparateHouseNumber());
+        $this->assertEquals(true, $generatorData->last()->isApiAllowed());
 
         /** @var ApiFeedService $service */
         $service = Mockery::mock(
@@ -85,42 +117,26 @@ class ApiFeedServiceTest extends BaseTest
 
         $filter = new CarrierFilter();
         $filter->setIds((['13', '14']));
-
-        $sample = new CarrierSample();
-        $sample->setCountry('cz');
-
-        $filter->setCarrierSample($sample);
+        $filter->setCountries(['cz']);
         $result = $service->getCarriers($filter);
         $this->checkCollections($filter, $result);
 
         $filter = new CarrierFilter();
         $filter->setIds((['13', '14']));
-
-        $sample = new CarrierSample();
-        $sample->setCountry('de');
-
-        $filter->setCarrierSample($sample);
+        $filter->setCountries(['de']);
         $result = $service->getCarriers($filter);
         $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
-
-        $sample = new CarrierSample();
-        $sample->setCountry('de');
-
-        $filter->setCarrierSample($sample);
+        $filter->setCountries(['de']);
         $result = $service->getCarriers($filter);
         $this->assertCount(2, $result);
         $this->assertEquals(2, count($result));
         $this->assertEquals(2, $result->count());
 
         $filter = new CarrierFilter();
-
-        $sample = new CarrierSample();
-        $sample->setCountry('de');
-        $sample->setPickupPoints(true);
-
-        $filter->setCarrierSample($sample);
+        $filter->setCountries(['de']);
+        $filter->setHasPickupPoints(true);
         $result = $service->getCarriers($filter);
         $this->assertCount(1, $result);
 
@@ -174,33 +190,32 @@ class ApiFeedServiceTest extends BaseTest
 
         $filter = new CarrierFilter();
         $filter->setLimit(0);
-        $filter->buildSample(null, null, null);
+        $filter->buildSample(null, null);
         $result = $service->getCarriers($filter);
         $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
         $filter->setLimit(3);
-        $filter->buildSample(null, null, null);
+        $filter->buildSample(null, null);
         $result = $service->getCarriers($filter);
         $this->assertCount(3, $result);
 
         $filter = new CarrierFilter();
         $filter->setIds([18, 17, 12, 'adadadadadad']);
-        $filter->buildSample('hu', false, null);
+        $filter->buildSample('hu', false);
         $result = $service->getCarriers($filter);
         $this->assertCount(1, $result);
-    }
 
-    public function testDeniedSampleMethods()
-    {
-        $this->assertException(
-            InvalidStateException::class,
-            function () {
-                $sample = new CarrierSample();
-                $sample->setName('czpost');
-            },
-            'SimpleCarrierSample __call check not working'
-        );
+        $filter = new CarrierFilter();
+        $filter->setRequiresCustomsDeclarations(false);
+        $filter->buildSample('sk', null);
+        $result = $service->getCarriers($filter);
+        $this->assertCount(1, $result);
+
+        $filter = new CarrierFilter();
+        $filter->setRequiresCustomsDeclarations(true);
+        $result = $service->getCarriers($filter);
+        $this->assertCount(0, $result);
     }
 
     private function checkCollections($filter, $result)
