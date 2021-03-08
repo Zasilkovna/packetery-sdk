@@ -3,11 +3,10 @@
 namespace Packetery\Tests;
 
 use Exception;
-use Packetery\SDK\Cache;
 use Packetery\SDK\Config;
 use Packetery\SDK\Container;
-use Packetery\SDK\Feed\SimpleCarrier;
-use Packetery\SDK\Feed\SimpleCarrierCollection;
+use Packetery\SDK\Feed\Carrier;
+use Packetery\SDK\Feed\CarrierCollection;
 use Packetery\SDK\Storage\FileStorage;
 use Packetery\Utils\FS;
 use PHPUnit\Framework\TestCase;
@@ -42,6 +41,13 @@ abstract class BaseTest extends TestCase
         }
     }
 
+    /**
+     * @param object $object
+     * @param string $method
+     * @param array $arguments
+     * @return mixed
+     * @throws \ReflectionException
+     */
     protected function callPrivateMethod($object, $method, $arguments = [])
     {
         $rc = new \ReflectionClass($object);
@@ -50,6 +56,10 @@ abstract class BaseTest extends TestCase
         return $method->invokeArgs($object, $arguments);
     }
 
+    /**
+     * @param string $name
+     * @return \Packetery\SDK\Storage\FileStorage
+     */
     protected function createCacheFileStorage($name = 'default')
     {
         return FileStorage::createCacheFileStorage(__DIR__ . '/temp', $name);
@@ -65,36 +75,39 @@ abstract class BaseTest extends TestCase
         return new Container($this->config);
     }
 
+    /**
+     * @return \Packetery\SDK\Feed\CarrierCollection
+     */
     protected function createSimpleCarrierCollection()
     {
-        $collection = new SimpleCarrierCollection();
+        $collection = new CarrierCollection();
 
-        $carrier = new SimpleCarrier('13', 'CZ POST HD');
+        $carrier = new Carrier('13', 'CZ POST HD');
         $carrier->setCountry('cz');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier('14', 'CZ DPD HD');
+        $carrier = new Carrier('14', 'CZ DPD HD');
         $carrier->setCountry('cz');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier('15', 'DE HERMES HD');
+        $carrier = new Carrier('15', 'DE HERMES HD');
         $carrier->setCountry('de');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier('16', 'DE HERMES PP');
+        $carrier = new Carrier('16', 'DE HERMES PP');
         $carrier->setCountry('de');
         $carrier->setPickupPoints(true);
         $collection->add($carrier);
 
-        $carrier = new SimpleCarrier('17', 'SK POST HD');
+        $carrier = new Carrier('17', 'SK POST HD');
         $carrier->setCountry('sk');
         $carrier->setPickupPoints(false);
         $collection->add($carrier);
 
-        $carrier = SimpleCarrier::createFromFeedArray(
+        $carrier = Carrier::createFromFeedArray(
             [
                 'id' => 18,
                 'name' => 'HU TOF PP',
@@ -119,6 +132,11 @@ abstract class BaseTest extends TestCase
         return $collection;
     }
 
+    /**
+     * @param string $exceptionClass
+     * @param callable $callback
+     * @param string $message
+     */
     protected function assertException($exceptionClass, callable $callback, $message = '')
     {
         $exception = null;

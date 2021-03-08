@@ -4,6 +4,9 @@ namespace Packetery\SDK;
 
 use Packetery\SDK\Storage\IStorage;
 
+/**
+ * Responsible for correcty storing temporary data
+ */
 class Cache
 {
     /** @var \Packetery\SDK\Storage\IStorage */
@@ -17,6 +20,10 @@ class Cache
         $this->storage = $storage;
     }
 
+    /**
+     * @param string $key
+     * @return bool
+     */
     public function exists($key)
     {
         return $this->storage->exists($key);

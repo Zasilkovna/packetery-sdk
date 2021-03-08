@@ -5,8 +5,8 @@ namespace Packetery\Tests;
 require __DIR__ . '/../autoload.php';
 
 use Packetery\Domain\InvalidArgumentException;
-use Packetery\SDK\Feed\SimpleCarrier;
-use Packetery\SDK\Feed\SimpleCarrierCollection;
+use Packetery\SDK\Feed\Carrier;
+use Packetery\SDK\Feed\CarrierCollection;
 
 class CollectionTest extends BaseTest
 {
@@ -14,12 +14,12 @@ class CollectionTest extends BaseTest
     public function testCarriers()
     {
         $data = $this->createSimpleCarrierCollection();
-        $data = new SimpleCarrierCollection($data->toArray());
+        $data = new CarrierCollection($data->toArray());
 
         $this->assertNotEmpty($data->last());
         $this->assertNotEmpty($data->first());
 
-        $newAdded = new SimpleCarrier(99, 'added');
+        $newAdded = new Carrier(99, 'added');
         $data->set(0, $newAdded);
         $this->assertEquals($data->first(), $newAdded);
 
@@ -28,7 +28,7 @@ class CollectionTest extends BaseTest
         $this->assertEquals($data->get(0), $newAdded);
 
         $removedItem = $data->remove(1);
-        $this->assertInstanceOf(SimpleCarrier::class, $removedItem);
+        $this->assertInstanceOf(Carrier::class, $removedItem);
 
         $removedItem = $data->remove(-1);
         $this->assertNull($removedItem);
@@ -45,7 +45,7 @@ class CollectionTest extends BaseTest
         $this->assertTrue($data->count() > 0);
         $this->assertEquals(json_encode($data), json_encode($data->toArray()));
 
-        $collection = new SimpleCarrierCollection([]);
+        $collection = new CarrierCollection([]);
         $this->assertNull($collection->last());
         $this->assertException(InvalidArgumentException::class, function () use ($collection) {
                 $collection->add(null);
@@ -61,7 +61,7 @@ class CollectionTest extends BaseTest
         $this->assertException(
             InvalidArgumentException::class,
             function () use ($collection) {
-                new SimpleCarrierCollection(
+                new CarrierCollection(
                     [
                         [
                             'id' => 87,
@@ -72,7 +72,7 @@ class CollectionTest extends BaseTest
             }
         );
 
-        $newLast = new SimpleCarrier(44, 'asdadas');
+        $newLast = new Carrier(44, 'asdadas');
         $collection[] = $newLast;
         $this->assertEquals($collection->last(), $newLast);
     }

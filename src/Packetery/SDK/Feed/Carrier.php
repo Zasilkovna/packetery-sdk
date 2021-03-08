@@ -8,7 +8,7 @@ use Packetery\Utils\Arrays;
  * Carrier has flag that says if it is HD or PP carrier and contains no list of points
  * Home delivery or pickup point carrier. Based on branch.json packeta endpoint
  */
-class SimpleCarrier
+class Carrier
 {
     /** @var string */
     private $id;
@@ -55,12 +55,21 @@ class SimpleCarrier
     /** @var string|null */
     private $labelName;
 
+    /**
+     * @param string $id
+     * @param string $name
+     */
     public function __construct($id, $name)
     {
         $this->id = $id;
         $this->name = $name;
     }
 
+    /** Converts value to boolean
+     * @param array $carrier
+     * @param array $keys
+     * @return bool|null
+     */
     private static function parseBool($carrier, $keys)
     {
         $value = Arrays::getValue($carrier, $keys, null);

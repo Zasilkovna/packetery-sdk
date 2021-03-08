@@ -8,6 +8,9 @@ use Packetery\SDK\Storage\IStorage;
 use Packetery\Utils\Arrays;
 use Packetery\Utils\Json;
 
+/**
+ *  Common logic of all feed services
+ */
 class FeedServiceBrain
 {
     /** @var \Packetery\SDK\Cache */
@@ -66,14 +69,14 @@ class FeedServiceBrain
     }
 
     /**
-     * @return \Packetery\SDK\Feed\SimpleCarrier[]|\Generator
+     * @return \Packetery\SDK\Feed\Carrier[]|\Generator
      */
     public function getSimpleCarrierGenerator()
     {
         $decoded = $this->getSimpleCarrierExportDecoded();
         $carriers = Arrays::getValue($decoded ?: [], ['carriers'], []);
         foreach ($carriers as $key => $carrier) {
-            $instance = SimpleCarrier::createFromFeedArray($carrier);
+            $instance = Carrier::createFromFeedArray($carrier);
             yield $key => $instance; // so it does not matter how many items there are
         }
     }

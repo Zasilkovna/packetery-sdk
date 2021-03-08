@@ -9,6 +9,9 @@ use Packetery\SDK\Feed\FeedServiceBrain;
 use Packetery\SDK\Storage\FileStorage;
 use Packetery\SDK\Storage\MemoryStorage;
 
+/**
+ * Contains default class instances
+ */
 class Container
 {
     /** @var \Packetery\SDK\Config */
@@ -52,7 +55,7 @@ class Container
         return $this->cache->load(
             __METHOD__,
             function () {
-                $dir = ($this->config->getTempFolder());
+                $dir = $this->config->getTempFolder();
 
                 return new FeedServiceBrain(
                     $this->getClient(),

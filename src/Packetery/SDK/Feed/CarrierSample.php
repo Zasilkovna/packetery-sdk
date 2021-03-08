@@ -7,7 +7,7 @@ use Packetery\Domain\InvalidStateException;
 /**
  * Sample for CarrierFilter
  */
-class SimpleCarrierSample extends SimpleCarrier
+class CarrierSample extends Carrier
 {
     public function __construct()
     {
@@ -69,19 +69,6 @@ class SimpleCarrierSample extends SimpleCarrier
      * @internal
      */
     public function setSeparateHouseNumber($separateHouseNumber = null)
-    {
-        throw new InvalidStateException('not implemented');
-    }
-
-    public function isCustomsDeclarations()
-    {
-        throw new InvalidStateException('not implemented');
-    }
-
-    /**
-     * @internal
-     */
-    public function setCustomsDeclarations($customsDeclarations = null)
     {
         throw new InvalidStateException('not implemented');
     }

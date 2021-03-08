@@ -8,8 +8,8 @@ use Packetery\Domain\InvalidStateException;
 use Packetery\SDK\Feed\ApiFeedService;
 use Packetery\SDK\Feed\CarrierFilter;
 use Packetery\SDK\Feed\FeedServiceBrain;
-use Packetery\SDK\Feed\SimpleCarrier;
-use Packetery\SDK\Feed\SimpleCarrierSample;
+use Packetery\SDK\Feed\Carrier;
+use Packetery\SDK\Feed\CarrierSample;
 
 require __DIR__ . '/../autoload.php';
 
@@ -25,7 +25,7 @@ class ApiFeedServiceTest extends BaseTest
         $this->assertNotEmpty($carriers, 'is empty');
         $this->assertTrue($carriers->count() > 0, 'count is 0');
         $carrier = $carriers->first();
-        $this->assertInstanceOf(SimpleCarrier::class, $carrier);
+        $this->assertInstanceOf(Carrier::class, $carrier);
 
         $ids = [];
         foreach ($carriers as $carrier) {
@@ -40,14 +40,14 @@ class ApiFeedServiceTest extends BaseTest
         $this->assertCount(count($uniqueIds), $ids, 'collection contains duplicate carriers');
 
         $id = array_shift($ids);
-        $carrier = $service->getSimpleCarrierById($id);
-        $this->assertInstanceOf(SimpleCarrier::class, $carrier, 'carrier is not SimpleCarrier');
+        $carrier = $service->getCarrierById($id);
+        $this->assertInstanceOf(Carrier::class, $carrier, 'carrier is not SimpleCarrier');
         $this->assertEquals((string)$carrier->getId(), $id, 'service returned incorrect carrier');
 
-        $carrier = $service->getSimpleCarrierById('');
+        $carrier = $service->getCarrierById('');
         $this->assertEquals(null, $carrier, 'service didnt retuned null when should');
 
-        $carriers = $service->getSimpleCarriersByCountry('sk');
+        $carriers = $service->getCarriersByCountry('sk');
         $this->assertTrue($carriers->count() > 0, 'count is 0');
 
         $ids = [];
@@ -80,91 +80,91 @@ class ApiFeedServiceTest extends BaseTest
 
         $filter = new CarrierFilter();
         $filter->setIds((['13', '14']));
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->checkCollections($filter, $result);
 
         $filter = new CarrierFilter();
         $filter->setIds((['13', '14']));
 
-        $sample = new SimpleCarrierSample();
+        $sample = new CarrierSample();
         $sample->setCountry('cz');
 
-        $filter->setSimpleCarrierSample($sample);
-        $result = $service->getSimpleCarriers($filter);
+        $filter->setCarrierSample($sample);
+        $result = $service->getCarriers($filter);
         $this->checkCollections($filter, $result);
 
         $filter = new CarrierFilter();
         $filter->setIds((['13', '14']));
 
-        $sample = new SimpleCarrierSample();
+        $sample = new CarrierSample();
         $sample->setCountry('de');
 
-        $filter->setSimpleCarrierSample($sample);
-        $result = $service->getSimpleCarriers($filter);
+        $filter->setCarrierSample($sample);
+        $result = $service->getCarriers($filter);
         $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
 
-        $sample = new SimpleCarrierSample();
+        $sample = new CarrierSample();
         $sample->setCountry('de');
 
-        $filter->setSimpleCarrierSample($sample);
-        $result = $service->getSimpleCarriers($filter);
+        $filter->setCarrierSample($sample);
+        $result = $service->getCarriers($filter);
         $this->assertCount(2, $result);
         $this->assertEquals(2, count($result));
         $this->assertEquals(2, $result->count());
 
         $filter = new CarrierFilter();
 
-        $sample = new SimpleCarrierSample();
+        $sample = new CarrierSample();
         $sample->setCountry('de');
         $sample->setPickupPoints(true);
 
-        $filter->setSimpleCarrierSample($sample);
-        $result = $service->getSimpleCarriers($filter);
+        $filter->setCarrierSample($sample);
+        $result = $service->getCarriers($filter);
         $this->assertCount(1, $result);
 
         $generatorData = $this->createSimpleCarrierCollection();
 
         $filter = new CarrierFilter();
         $filter->buildSample('cz', false);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
         $filter->buildSample('cz', true);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(2, $result);
 
         $filter = new CarrierFilter();
         $filter->buildSample('cz', false);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
         $filter->buildSample('cz', null);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(2, $result);
 
         $filter = new CarrierFilter();
         $filter->buildSample('sk', null);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(1, $result);
 
         $filter = new CarrierFilter();
         $filter->buildSample('sk', false);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
         $filter->buildSample('de', false);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(1, $result);
         $this->assertEquals('de', $result->first()->getCountry());
 
         $filter = new CarrierFilter();
         $filter->buildSample('hu', false);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(1, $result);
         $this->assertEquals('hu', $result->first()->getCountry());
         $this->assertEquals(18, $result->first()->getId());
@@ -175,25 +175,19 @@ class ApiFeedServiceTest extends BaseTest
         $filter = new CarrierFilter();
         $filter->setLimit(0);
         $filter->buildSample(null, null, null);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
         $filter->setLimit(3);
         $filter->buildSample(null, null, null);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(3, $result);
-
-        $filter = new CarrierFilter();
-        $filter->setExcludedIds(['18', 18]);
-        $filter->buildSample('hu', false, null);
-        $result = $service->getSimpleCarriers($filter);
-        $this->assertCount(0, $result);
 
         $filter = new CarrierFilter();
         $filter->setIds([18, 17, 12, 'adadadadadad']);
         $filter->buildSample('hu', false, null);
-        $result = $service->getSimpleCarriers($filter);
+        $result = $service->getCarriers($filter);
         $this->assertCount(1, $result);
     }
 
@@ -202,7 +196,7 @@ class ApiFeedServiceTest extends BaseTest
         $this->assertException(
             InvalidStateException::class,
             function () {
-                $sample = new SimpleCarrierSample();
+                $sample = new CarrierSample();
                 $sample->setName('czpost');
             },
             'SimpleCarrierSample __call check not working'

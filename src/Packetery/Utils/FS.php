@@ -4,8 +4,16 @@ namespace Packetery\Utils;
 
 use Packetery\Domain\InvalidArgumentException;
 
+/**
+ * FileSystem helpers
+ */
 class FS
 {
+    /**
+     * @param string $pattern
+     * @param int $flags
+     * @return array|false
+     */
     public static function rglob($pattern, $flags = 0)
     {
         $files = glob($pattern, $flags);
@@ -15,6 +23,9 @@ class FS
         return $files;
     }
 
+    /**
+     * @param string $pattern
+     */
     public static function removeFiles($pattern)
     {
         $files = self::rglob($pattern, GLOB_NOSORT);

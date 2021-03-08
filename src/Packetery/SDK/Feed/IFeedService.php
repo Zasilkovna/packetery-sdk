@@ -9,19 +9,19 @@ interface IFeedService
      * @param \Packetery\SDK\Feed\CarrierFilter|null $branchFilter
      * @return \Traversable
      */
-    public function getSimpleCarriers(CarrierFilter $branchFilter = null);
+    public function getCarriers(CarrierFilter $branchFilter = null);
 
     /**
      * @param string $id
      * @return mixed
      */
-    public function getSimpleCarrierById($id);
+    public function getCarrierById($id);
 
     /**
      * @param string $country
      * @return \Traversable
      */
-    public function getSimpleCarriersByCountry($country);
+    public function getCarriersByCountry($country);
 
     /**
      * @param string $country

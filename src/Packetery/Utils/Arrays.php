@@ -10,8 +10,8 @@ class Arrays
     /** Returns assoc array value by given key sequence and avoids NOTICEs
      * @param array $arr
      * @param array $keys
-     * @param null $default
-     * @return array|mixed|null
+     * @param mixed|null $default
+     * @return mixed
      */
     public static function getValue(array $arr, array $keys, $default = null)
     {

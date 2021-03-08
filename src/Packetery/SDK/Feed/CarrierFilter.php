@@ -10,39 +10,23 @@ class CarrierFilter
     /** @var array|null */
     private $ids;
 
-    /** @var array|null */
-    private $excludedIds;
-
     /** @var int|null */
     private $limit;
 
-    /** @var \Packetery\SDK\Feed\SimpleCarrierSample|null */
-    private $simpleCarrierSample;
+    /** @var \Packetery\SDK\Feed\CarrierSample|null */
+    private $carrierSample;
 
     /**
-     * @return array|null
+     * @return \Packetery\SDK\Feed\CarrierSample|null
      */
-    public function getExcludedIds()
+    public function getCarrierSample()
     {
-        return $this->excludedIds;
+        return $this->carrierSample;
     }
 
-    public function setExcludedIds(array $excludedIds = null)
+    public function setCarrierSample(CarrierSample $carrierSample = null)
     {
-        $this->excludedIds = $excludedIds;
-    }
-
-    /**
-     * @return \Packetery\SDK\Feed\SimpleCarrierSample|null
-     */
-    public function getSimpleCarrierSample()
-    {
-        return $this->simpleCarrierSample;
-    }
-
-    public function setSimpleCarrierSample(SimpleCarrierSample $simpleCarrierSample = null)
-    {
-        $this->simpleCarrierSample = $simpleCarrierSample;
+        $this->carrierSample = $carrierSample;
     }
 
     /** null means that you do not care
@@ -52,7 +36,7 @@ class CarrierFilter
      */
     public function buildSample($country, $forAddressDelivery)
     {
-        $sample = new SimpleCarrierSample();
+        $sample = new CarrierSample();
 
         if (is_string($country)) {
             $sample->setCountry($country);
@@ -62,7 +46,7 @@ class CarrierFilter
             $sample->setPickupPoints(!$forAddressDelivery);
         }
 
-        $this->simpleCarrierSample = $sample;
+        $this->carrierSample = $sample;
     }
 
     /**

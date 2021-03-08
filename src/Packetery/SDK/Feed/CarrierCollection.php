@@ -4,16 +4,19 @@ namespace Packetery\SDK\Feed;
 
 use Packetery\SDK\AbstractCollection;
 
-class SimpleCarrierCollection extends AbstractCollection
+class CarrierCollection extends AbstractCollection
 {
 
+    /**
+     * @return string
+     */
     public function getItemClass()
     {
-        return SimpleCarrier::class;
+        return Carrier::class;
     }
 
     /**
-     * @return \Packetery\SDK\Feed\SimpleCarrier|null
+     * @return \Packetery\SDK\Feed\Carrier|null
      */
     public function first()
     {
