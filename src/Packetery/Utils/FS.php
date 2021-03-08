@@ -30,7 +30,7 @@ class FS
     {
         $files = self::rglob($pattern, GLOB_NOSORT);
 
-        foreach ($files ?: [] as $file) {
+        foreach (($files ?: []) as $file) {
             if (is_dir($file) || $file === '.' || $file === '..') {
                 continue;
             }

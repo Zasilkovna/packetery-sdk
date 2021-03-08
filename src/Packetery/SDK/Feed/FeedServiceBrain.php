@@ -43,7 +43,7 @@ class FeedServiceBrain
     public function getSimpleCarrierExport()
     {
         $callResult = $this->client->getSimpleCarriers();
-        return $callResult ?: null;
+        return ($callResult ?: null);
     }
 
     /**
@@ -65,7 +65,7 @@ class FeedServiceBrain
         } catch (ClientException $exception) {
         }
 
-        return $responseBody ? $this->decodeJsonContent($responseBody) : null;
+        return ($responseBody ? $this->decodeJsonContent($responseBody) : null);
     }
 
     /**
@@ -74,7 +74,7 @@ class FeedServiceBrain
     public function getSimpleCarrierGenerator()
     {
         $decoded = $this->getSimpleCarrierExportDecoded();
-        $carriers = Arrays::getValue($decoded ?: [], ['carriers'], []);
+        $carriers = Arrays::getValue(($decoded ?: []), ['carriers'], []);
         foreach ($carriers as $key => $carrier) {
             $instance = Carrier::createFromFeedArray($carrier);
             yield $key => $instance; // so it does not matter how many items there are
@@ -91,6 +91,6 @@ class FeedServiceBrain
             return null;
         }
 
-        return Json::decode((string)$jsonContent, Json::FORCE_ARRAY) ?: null;
+        return (Json::decode((string)$jsonContent, Json::FORCE_ARRAY) ?: null);
     }
 }

@@ -27,7 +27,7 @@ class Client
 
         $content = $this->get($url);
 
-        return $content ?: null;
+        return ($content ?: null);
     }
 
     private function get($url)

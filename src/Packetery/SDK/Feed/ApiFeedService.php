@@ -100,7 +100,7 @@ class ApiFeedService implements IFeedService
      */
     public function getAddressDeliveryCarriers(CarrierFilter $branchFilter = null)
     {
-        $filter = $branchFilter ?: new CarrierFilter();
+        $filter = ($branchFilter ?: new CarrierFilter());
         $filter->setHasPickupPoints(false);
         return $this->getCarriers($filter);
     }
@@ -111,7 +111,7 @@ class ApiFeedService implements IFeedService
      */
     public function getPickupPointCarriers(CarrierFilter $branchFilter = null)
     {
-        $filter = $branchFilter ?: new CarrierFilter();
+        $filter = ($branchFilter ?: new CarrierFilter());
         $filter->setHasPickupPoints(true);
         return $this->getCarriers($filter);
     }
