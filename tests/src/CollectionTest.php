@@ -72,6 +72,12 @@ class CollectionTest extends BaseTest
             }
         );
 
+        $count = 0;
+        foreach ($collection as $carrier) {
+            $count++;
+        }
+        $this->assertEquals($collection->count(), $count);
+
         $newLast = new Carrier(44, 'asdadas');
         $collection[] = $newLast;
         $this->assertEquals($collection->last(), $newLast);

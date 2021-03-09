@@ -5,6 +5,8 @@ namespace Packetery\Tests;
 require __DIR__ . '/../autoload.php';
 
 use Packetery\SDK\Container;
+use Packetery\SDK\Feed\ApiFeedService;
+use Packetery\SDK\Feed\FeedServiceBrain;
 
 class ContainerTest extends BaseTest
 {
@@ -26,6 +28,8 @@ class ContainerTest extends BaseTest
         $container = Container::create($baseConf);
         $service = $container->getApiFeedService();
         $service2 = $container->getApiFeedService();
+        $this->assertInstanceOf(ApiFeedService::class, $service);
+        $this->assertInstanceOf(ApiFeedService::class, $service2);
         $this->assertTrue($service === $service2);
     }
 }
