@@ -1,0 +1,15 @@
+<?php
+
+// rename file to config.php
+
+return [
+    'parameters' => [
+        'tempFolder' => __DIR__ . '/temp',
+        'api' => [
+            'key' => 'yourApiKey', // see client.packeta.com
+            'baseUrl' => 'http://www.zasilkovna.cz/api',
+            'timeout' => 30,
+        ],
+		'feedCacheExpirationSeconds' => 30
+    ]
+];

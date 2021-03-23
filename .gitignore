@@ -1,0 +1,6 @@
+.idea
+config.php
+
+/vendor/
+/temp/
+/tests/temp/
